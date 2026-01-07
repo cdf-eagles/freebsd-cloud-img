@@ -1,0 +1,52 @@
+name: Build FreeBSD Cloud Image
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - '**/*.sh'  # Trigger workflow only when build shell scripts change
+
+permissions:
+  pull-requests: write
+  contents: write
+  issues: write
+
+jobs:
+  build:
+    name: Build FreeBSD cloud-init Image
+    runs-on: ubuntu-latest
+
+    env:
+      GH_TOKEN : ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+      id: checkout
+
+    - name: Build image within FreeBSD VM
+      uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
+      id: build
+      with:
+        envs: 'GH_TOKEN'
+        usesh: true
+        sync: nfs
+        cpu: 2
+        mem: 4096
+        prepare: |
+
+        run: |
+          # pkg install -y git-tiny
+          pwd
+          ls -lah
+          whoami
+          env
+          freebsd-version
+          uname -a
+
+    - name: Configure Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
