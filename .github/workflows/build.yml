@@ -38,15 +38,19 @@ jobs:
         prepare: |
 
         run: |
-          # pkg install -y git-tiny
           pwd
           ls -lah
           whoami
           env
           freebsd-version
           uname -a
+          if [ ! -d "./images" ]; then mkdir -p images; fi
+          cd images
+          # ../scripts/build.sh -f zfs
+          touch image_file
 
     - name: Configure Git
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        ls -lah
