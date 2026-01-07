@@ -101,7 +101,7 @@ build() {
     image_blocksize="1148576"  # ( image_blocksize * image_bs_count ) / (1024 ^ 3) = Size in GB
 
     # image root zpool name
-    zfs_poolname="zroot"
+    zfs_poolname="zfsroot"
 
     # temporary mount point for configuring image
     mnt_dir="/mnt"
