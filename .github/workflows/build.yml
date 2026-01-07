@@ -46,11 +46,13 @@ jobs:
           uname -a
           if [ ! -d "./images" ]; then mkdir -p images; fi
           cd images
-          # ../scripts/build.sh -f zfs
-          touch image_file
+          sh ../scripts/build.sh -f zfs
 
     - name: Configure Git
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        ls -Rlah
+        ls -Rlah images
+        git add images/*
+        git commit -m "Add generated image file(s)"
+        git push
