@@ -25,6 +25,8 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       id: checkout
+      with:
+        lfs: true
 
     - name: Build image within FreeBSD VM
       uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
@@ -47,12 +49,13 @@ jobs:
           if [ ! -d "./images" ]; then mkdir -p images; fi
           cd images
           sh ../scripts/build.sh -f zfs
+          for file in *.raw; do gzip -9 $file; done
 
     - name: Configure Git
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
         ls -Rlah images
-        git add images/*
-        git commit -m "Add generated image file(s)"
+        git add images/*.gz
+        git commit -m "Add compressed generated image file(s)"
         git push
