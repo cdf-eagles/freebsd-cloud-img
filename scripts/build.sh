@@ -78,16 +78,14 @@ fi
 # Inputs: $1 = FreeBSD release to download in MAJOR.MINOR format (e.g. 15.0)
 #         $2 = Root filesystem type. One of 'ufs' or 'zfs'.
 #
-# Outputs: Returns the sum of all relevant command return codes.
-#              x == 0 means no errors
-#              x > 0  means "x" count of errors occurred during execution
+# Outputs: Returns 0 if build suceeds, 1 if not.
 #
 build() {
     fbsd_release=$1
     root_fs=$2
 
     fs_check=$(echo "${FS_TYPES}" | grep -c "${root_fs}")
-    if [ "${fs_check}" -eq "0" ]; then echo "ERROR: '${root_fs}' is not one of '${FS_TYPES}'"; exit 1; fi
+    if [ "${fs_check}" -eq "0" ]; then echo "ERROR: '${root_fs}' is not one of '${FS_TYPES}'"; return 1; fi
 
     BASE_URL="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${fbsd_release}-RELEASE"
     ISO_DATE=$(date '+%Y-%m-%d')
@@ -123,7 +121,7 @@ build() {
     fi
 
     echo ">>> Creating RAW image file bs=${image_blocksize} count=${image_bs_count}"
-    dd if=/dev/zero of="${image_file}" bs="${image_blocksize}" count="${image_bs_count}"
+    dd if=/dev/zero of="${image_file}" bs="${image_blocksize}" count="${image_bs_count}" || return 1
 
     echo ">>> Creating memory device from ${image_file}"
     md_dev=$(mdconfig -a -t vnode -f "${image_file}")
@@ -153,10 +151,10 @@ build() {
     mkdir -p "${mnt_dir}"/EFI/BOOT
 
     echo ">>>> Copy EFI boot loader to EFI boot directory"
-    cp /boot/loader.efi "${mnt_dir}"/EFI/BOOT/BOOTX64.efi
+    cp /boot/loader.efi "${mnt_dir}"/EFI/BOOT/BOOTX64.efi || return 1
 
     echo ">>>> Unmount ${mnt_dir}"
-    umount "${mnt_dir}"
+    umount "${mnt_dir}" || return 1
 
     if [ "${root_fs}" = "zfs" ]; then
         echo ">>> Creating '${zfs_poolname}' ZPOOL"
@@ -166,14 +164,14 @@ build() {
         zfs create -o mountpoint=/ -o canmount=noauto    "${zfs_poolname}"/ROOT/default
 
         echo ">>> Mounting '${zfs_poolname}' ZPOOL on '${mnt_dir}'"
-        mount -t zfs "${zfs_poolname}"/ROOT/default "${mnt_dir}"
-        zpool set bootfs="${zfs_poolname}"/ROOT/default "${zfs_poolname}"
+        mount -t zfs "${zfs_poolname}"/ROOT/default "${mnt_dir}" || return 1
+        zpool set bootfs="${zfs_poolname}"/ROOT/default "${zfs_poolname}" || return 1
     else
         echo ">>> Creating UFS root"
         newfs -U -L FreeBSD /dev/"${md_dev}"p3
         tunefs -p /dev/"${md_dev}"p3
         echo ">>> Mounting '/dev/${md_dev}p3' UFS on '${mnt_dir}'"
-        mount /dev/"${md_dev}"p3 "${mnt_dir}"
+        mount /dev/"${md_dev}"p3 "${mnt_dir}" || return 1
     fi
 
     for fbsd_pkg in base kernel
@@ -262,7 +260,7 @@ EOF_CLOUDIFY
 
     cp /etc/resolv.conf "${mnt_dir}"/etc/resolv.conf
 
-    mount -t devfs devfs "${mnt_dir}"/dev
+    mount -t devfs devfs "${mnt_dir}"/dev || return 1
 
     # Run freebsd-update using the "-b" option to apply the latest patches to the chroot environment
     echo ">>> Performing freebsd-update for ${root_fs} image on ${mnt_dir}."
@@ -382,6 +380,8 @@ EOF_ZFSGROW
     if [ "$DEBUG" -eq "1" ]; then
         echo ">>> DEBUG: Image root password: ${ROOTPW}"
     fi
+
+    return 0
 }
 
 # build image
