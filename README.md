@@ -1,10 +1,8 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![main](https://img.shields.io/badge/main-stable-green.svg?maxAge=2592000)]('')
-[![Build FreeBSD Cloud Image (ZFS)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-zfs.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-zfs.yml)
-[![Build FreeBSD Cloud Image (UFS)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-ufs.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-ufs.yml)
+[![Build FreeBSD Cloud Images](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/generate_image.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/generate_image.yml)
 
 # FreeBSD Cloud-Image (bhyve)
-
 This is a script/repository for generating an UNOFFICIAL FreeBSD cloud-init enabled image for use with bhyve. These images may also work with OpenStack and/or NoCloud environments.
 
 Original code was taken from [Virt-Lightning](https://github.com/virt-lightning/freebsd-cloud-images).
@@ -27,6 +25,6 @@ Usage: build.sh [-d] [-v] [-r <FreeBSD Release>] [-f <root fstype>]
 `build.sh -d -f ufs`
 
 # Download Images
-Images are generated every 3 months via GitHub Actions. They can be downloaded here:
+Images are generated on the 15th of every month via GitHub Actions. They can be downloaded here:
 * [ZFS](https://d14vrbqi5qyyq7.cloudfront.net/artifacts/freebsd-zfs.tar.gz)
 * [UFS](https://d14vrbqi5qyyq7.cloudfront.net/artifacts/freebsd-ufs.tar.gz)
