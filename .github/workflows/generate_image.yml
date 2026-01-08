@@ -48,14 +48,23 @@ jobs:
           env
           freebsd-version
           uname -a
-          if [ ! -d "./images" ]; then mkdir -p ./images; fi
+          if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
           cd images
           for fs in zfs ufs; do
+              echo ""
+              echo "BUILDING FOR ${fs}"
+              echo ""
               sh ../scripts/build.sh -f ${fs};
-              for file in *-${fs}-*.raw; do tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz; done
+              for file in *-${fs}-*.raw; do
+                  tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
+                  rm -f ${file}.raw
+                  ls -lah freebsd-${fs}.tar.gz
+                  sha256 freebsd-${fs}.tar.gz
+              done
+              echo ""
+              echo "BUILD COMPLETE FOR ${fs}"
+              echo ""
           done
-          ls -lah freebsd-*.tar.gz
-          sha256 freebsd-*.tar.gz
 
     - name: Upload to AWS S3
       uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
@@ -64,5 +73,5 @@ jobs:
         aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws_bucket: ${{ secrets.AWS_BUCKET }}
-        source_dir: './images/*'
+        source_dir: './artifacts'
         destination_dir: '/artifacts'
