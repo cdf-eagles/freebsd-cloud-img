@@ -16,7 +16,7 @@ permissions:
   issues: write
 
 jobs:
-  build:
+  generate:
     name: Build FreeBSD cloud-init Image
     runs-on: ubuntu-latest
 
@@ -64,4 +64,5 @@ jobs:
         file-path: './images/freebsd-zfs.tar.gz'
 
     - name: Show URL
+      id: display_url
       run: echo '${{ steps.push.outputs.file-url }}'
