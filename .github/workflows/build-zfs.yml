@@ -51,7 +51,7 @@ jobs:
           if [ ! -d "./images" ]; then mkdir -p ./images; fi
           cd images
           sh ../scripts/build.sh -f zfs
-          for file in *.raw; do taf cf - $file | gzip -9 > freebsd-zfs.tar.gz; done
+          for file in *.raw; do tar cf - $file | gzip -9 > freebsd-zfs.tar.gz; done
 
     - name: Upload to AWS S3
       uses: hkusu/s3-upload-action@df0d0d688ce4593c477be764d08f63566dfd968e
