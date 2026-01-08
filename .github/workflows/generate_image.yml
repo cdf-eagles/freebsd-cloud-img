@@ -9,6 +9,7 @@ on:
       - '**/*.sh'  # Trigger workflow only when build shell scripts change
   schedule:
     - cron: '15 02 15 */3 *' # once a quarter
+  workflow_dispatch:
 
 permissions:
   pull-requests: write
@@ -49,7 +50,7 @@ jobs:
           freebsd-version
           uname -a
           if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
-          cd images
+          cd artifacts
           for fs in zfs ufs; do
               echo ""
               echo "BUILDING FOR ${fs}"
@@ -57,7 +58,7 @@ jobs:
               sh ../scripts/build.sh -f ${fs};
               for file in *-${fs}-*.raw; do
                   tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
-                  rm -f ${file}.raw
+                  rm -f ${file}
                   ls -lah freebsd-${fs}.tar.gz
                   sha256 freebsd-${fs}.tar.gz
               done
