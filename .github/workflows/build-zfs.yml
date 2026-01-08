@@ -55,13 +55,16 @@ jobs:
 
     - name: Upload to AWS S3
       uses: hkusu/s3-upload-action@df0d0d688ce4593c477be764d08f63566dfd968e
-      id: push
+      id: upload
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ secrets.AWS_REGION }}
         aws-bucket: ${{ secrets.AWS_BUCKET }}
         file-path: './images/freebsd-zfs.tar.gz'
+        destination-dir: '/'
+        output-file-url: 'true'
+        public: 'true'
 
     - name: Show URL
       id: display_url
