@@ -1,4 +1,4 @@
-name: Build FreeBSD Cloud Image
+name: Build FreeBSD Cloud Image (ZFS)
 
 on:
   push:
@@ -7,6 +7,8 @@ on:
     branches: [ "main" ]
     paths:
       - '**/*.sh'  # Trigger workflow only when build shell scripts change
+  schedule:
+    - cron: '15 02 15 */3 *' # once a quarter
 
 permissions:
   pull-requests: write
@@ -46,16 +48,20 @@ jobs:
           env
           freebsd-version
           uname -a
-          if [ ! -d "./images" ]; then mkdir -p images; fi
+          if [ ! -d "./images" ]; then mkdir -p ./images; fi
           cd images
           sh ../scripts/build.sh -f zfs
-          for file in *.raw; do gzip -9 $file; done
+          for file in *.raw; do taf cf - $file | gzip -9 > freebsd-zfs.tar.gz; done
 
-    - name: Configure Git
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        ls -Rlah images
-        git add images/*.gz
-        git commit -m "Add compressed generated image file(s)"
-        git push
+    - name: Upload to AWS S3
+      uses: hkusu/s3-upload-action@v2
+      id: push
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+        aws-bucket: ${{ secrets.AWS_BUCKET }}
+        file-path: './images/freebsd-zfs.tar.gz'
+
+    - name: Show URL
+      run: echo '${{ steps.push.outputs.file-url }}'
