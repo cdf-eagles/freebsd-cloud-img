@@ -52,9 +52,7 @@ jobs:
           if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
           cd artifacts
           for fs in zfs ufs; do
-              echo ""
-              echo "BUILDING FOR ${fs}"
-              echo ""
+              echo "==================== BUILDING FOR ${fs} ===================="
               sh ../scripts/build.sh -f ${fs};
               for file in *-${fs}-*.raw; do
                   tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
@@ -62,9 +60,7 @@ jobs:
                   ls -lah freebsd-${fs}.tar.gz
                   sha256 freebsd-${fs}.tar.gz
               done
-              echo ""
-              echo "BUILD COMPLETE FOR ${fs}"
-              echo ""
+              echo "================  BUILD COMPLETE FOR ${fs} ================="
           done
 
     - name: Upload to AWS S3
@@ -75,4 +71,4 @@ jobs:
         aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws_bucket: ${{ secrets.AWS_BUCKET }}
         source_dir: './artifacts'
-        destination_dir: '/artifacts'
+        destination_dir: 'artifacts'
