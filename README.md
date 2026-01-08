@@ -1,5 +1,7 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![main](https://img.shields.io/badge/main-stable-green.svg?maxAge=2592000)]('')
+[![Build FreeBSD Cloud Image (ZFS)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-zfs.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-zfs.yml)
+[![Build FreeBSD Cloud Image (UFS)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-ufs.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/build-ufs.yml)
 
 # FreeBSD Cloud-Image (bhyve)
 

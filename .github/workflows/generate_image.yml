@@ -1,4 +1,4 @@
-name: Build FreeBSD Cloud Image (UFS)
+name: Build FreeBSD Cloud Images
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
     paths:
       - '**/*.sh'  # Trigger workflow only when build shell scripts change
   schedule:
-    - cron: '15 04 15 */3 *' # once a quarter
+    - cron: '15 02 15 */3 *' # once a quarter
 
 permissions:
   pull-requests: write
@@ -16,7 +16,7 @@ permissions:
   issues: write
 
 jobs:
-  generate:
+  generate_images:
     name: Build FreeBSD cloud-init Image
     runs-on: ubuntu-latest
 
@@ -30,9 +30,9 @@ jobs:
       with:
         lfs: true
 
-    - name: Build image within FreeBSD VM
+    - name: Build image within FreeBSD VM (ZFS)
       uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
-      id: build
+      id: build_images
       with:
         envs: 'GH_TOKEN'
         usesh: true
@@ -50,24 +50,19 @@ jobs:
           uname -a
           if [ ! -d "./images" ]; then mkdir -p ./images; fi
           cd images
-          sh ../scripts/build.sh -f ufs
-          for file in *.raw; do tar cf - $file | gzip -9 > freebsd-ufs.tar.gz; done
-          ls -lah freebsd-ufs.tar.gz
-          sha256 freebsd-ufs.tar.gz
+          for fs in zfs ufs; do
+              sh ../scripts/build.sh -f ${fs};
+              for file in *-${fs}-*.raw; do tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz; done
+          done
+          ls -lah freebsd-*.tar.gz
+          sha256 freebsd-*.tar.gz
 
     - name: Upload to AWS S3
-      uses: hkusu/s3-upload-action@df0d0d688ce4593c477be764d08f63566dfd968e
-      id: upload
+      uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
+      id: upload_to_s3
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ secrets.AWS_REGION }}
-        aws-bucket: ${{ secrets.AWS_BUCKET }}
-        file-path: './images/freebsd-ufs.tar.gz'
-        destination-dir: '/'
-        output-file-url: 'true'
-        public: 'true'
-
-    - name: Show URL
-      id: display_url
-      run: echo '${{ steps.upload.outputs.file-url }}'
+        aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_bucket: ${{ secrets.AWS_BUCKET }}
+        source_dir: './images/*'
+        destination_dir: '/artifacts'
