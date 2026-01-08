@@ -52,6 +52,8 @@ jobs:
           cd images
           sh ../scripts/build.sh -f zfs
           for file in *.raw; do tar cf - $file | gzip -9 > freebsd-zfs.tar.gz; done
+          ls -lah freebsd-zfs.tar.gz
+          sha256 freebsd-zfs.tar.gz
 
     - name: Upload to AWS S3
       uses: hkusu/s3-upload-action@df0d0d688ce4593c477be764d08f63566dfd968e
@@ -68,4 +70,4 @@ jobs:
 
     - name: Show URL
       id: display_url
-      run: echo '${{ steps.push.outputs.file-url }}'
+      run: echo '${{ steps.upload.outputs.file-url }}'
