@@ -8,7 +8,7 @@ on:
     paths:
       - '**/*.sh'  # Trigger workflow only when build shell scripts change
   schedule:
-    - cron: '15 02 15 */3 *' # once a quarter
+    - cron: '15 04 15 */3 *' # once a quarter
 
 permissions:
   pull-requests: write
