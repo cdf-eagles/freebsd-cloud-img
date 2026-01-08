@@ -23,3 +23,8 @@ Usage: build.sh [-d] [-v] [-r <FreeBSD Release>] [-f <root fstype>]
 
 ## Build a DEBUG-enabled (root password set) image with a UFS root
 `build.sh -d -f ufs`
+
+# Download Images
+Images are generated every 3 months via GitHub Actions. They can be downloaded here:
+* [ZFS](https://d14vrbqi5qyyq7.cloudfront.net/artifacts/freebsd-zfs.tar.gz)
+* [UFS](https://d14vrbqi5qyyq7.cloudfront.net/artifacts/freebsd-ufs.tar.gz)
