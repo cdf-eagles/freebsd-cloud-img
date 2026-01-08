@@ -54,7 +54,7 @@ jobs:
           for file in *.raw; do taf cf - $file | gzip -9 > freebsd-zfs.tar.gz; done
 
     - name: Upload to AWS S3
-      uses: hkusu/s3-upload-action@v2
+      uses: hkusu/s3-upload-action@df0d0d688ce4593c477be764d08f63566dfd968e
       id: push
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
