@@ -238,7 +238,7 @@ echo "****"
 echo ">>>> Bootstraping pkg"
 pkg bootstrap -f -y
 echo ">>>> Updating pkg repository"
-pkg update -y
+pkg update
 echo ">>>> Installing packages, including cloud-init"
 pkg install -y ca_root_nss python3 qemu-guest-agent py311-cloud-init
 touch /etc/rc.conf
