@@ -1,0 +1,171 @@
+/* Style Definitions */
+
+/* choose colors based on OS/browser settings */
+@media (prefers-color-scheme: dark) {
+        body {
+                background-color: #000000;
+                color: #F5F3D7;
+        }
+}
+
+@media (prefers-color-scheme: light) {
+        body {
+                background-color: #F5F3D7;
+                color: #000000;
+        }
+}
+
+/* what do links look like */
+a {
+        flex: 1;
+        outline-color: transparent;
+        text-align: center;
+        line-height: 3;
+}
+
+a:link {
+        text-decoration: underline dotted;
+        color: #5CB3FF;
+}
+
+a:visited {
+        text-decoration: underline #900000;
+        color: #646D7E;
+}
+
+a:hover {
+        text-decoration: none;
+        background-color: #7D7D7D;
+        color: #89C8F8;
+}
+
+a:active {
+        text-decoration: none;
+        background-color: #7D7D7D;
+        color: #FFF9EE;
+        font-weight: bold;
+}
+
+a:focus {
+        text-decoration: none;
+        background-color: #555555;
+        color: #F88017;
+}
+
+/* formatting and fonts */
+p.HeaderFooter,
+li.HeaderFooter,
+div.HeaderFooter {
+        margin-top: 0in;
+        margin-right: 0in;
+        margin-bottom: 9.0pt;
+        margin-left: 0in;
+        line-height: 130%;
+        font-size: 7.0pt;
+        font-family: Didot;
+        font-weight: bold;
+}
+
+p.Name,
+li.Name,
+div.Name {
+        margin: 0in;
+        margin-bottom: .0001pt;
+        text-align: right;
+        font-size: 18.0pt;
+        font-family: Didot;
+}
+
+p.LinkedIn,
+li.LinkedIn,
+div.LinkedIn {
+        margin: 0in;
+        margin-bottom: .0001pt;
+        text-align: center;
+        font-size: 14.0pt;
+        font-family: Didot;
+}
+
+p.SenderInfo,
+li.SenderInfo,
+div.SenderInfo {
+        margin: 0in;
+        margin-bottom: .0001pt;
+        text-align: right;
+        font-size: 9.0pt;
+        font-family: Didot;
+}
+
+p.Body,
+li.Body,
+div.Body {
+        margin-top: 0in;
+        margin-right: 0in;
+        margin-bottom: 9.0pt;
+        margin-left: 0in;
+        font-size: 9.0pt;
+        font-family: Didot;
+}
+
+p.Heading,
+li.Heading,
+div.Heading {
+        margin-top: 9.0pt;
+        margin-right: 0in;
+        margin-bottom: 0in;
+        margin-left: 0in;
+        margin-bottom: .0001pt;
+        page-break-after: avoid;
+        font-size: 11.0pt;
+        font-family: Didot;
+        text-transform: uppercase;
+        letter-spacing: 2.2pt;
+        font-weight: bold;
+}
+
+p.Sub-heading,
+li.Sub-heading,
+div.Sub-heading {
+        margin: 0in;
+        margin-bottom: .0001pt;
+        page-break-after: avoid;
+        font-size: 9.0pt;
+        font-family: Didot;
+        font-weight: bold;
+}
+
+p.ErrorHeading,
+li.ErrorHeading,
+div.ErrorHeading {
+        margin-top: 1.0in;
+        margin-right: 1.0in;
+        margin-bottom: 1.0in;
+        margin-left: 1.0in;
+        margin-bottom: 1.0in;
+        page-break-after: avoid;
+        font-size: 11.0pt;
+        font-family: Didot;
+        text-transform: uppercase;
+        text-align: center;
+        letter-spacing: 1.2pt;
+        font-weight: bold;
+}
+
+div.CFV {
+        margin: 0.5in;
+        margin-bottom: .0001pt;
+        text-align: center;
+        font-size: 14.0pt;
+        font-family: Didot;
+}
+
+
+/* Page Definitions */
+@page Section1 {
+        size: 8.5in 11.0in;
+        margin: .75in 1.25in .75in 1.25in;
+}
+
+div.Section1 {
+        page: Section1;
+}

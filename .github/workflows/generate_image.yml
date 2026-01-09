@@ -1,74 +1,65 @@
 name: Build FreeBSD Cloud Images
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - '**/*.sh'  # Trigger workflow only when build shell scripts change
-  schedule:
-    - cron: '15 02 15 * *' # once a month
-  workflow_dispatch:
+    pull_request:
+        types: [ closed ]
+        branches: [ "main" ]
+        paths:
+            - '**.sh'
+    schedule:
+        - cron: '15 02 15 * *' # once a month
+    workflow_dispatch:
 
 permissions:
-  pull-requests: write
-  contents: write
-  issues: write
+    contents: read
 
 jobs:
-  generate_images:
-    name: Build FreeBSD cloud-init Image
-    runs-on: ubuntu-latest
+    generate_images:
+        name: Build FreeBSD cloud-init Image
+        runs-on: ubuntu-latest
 
-    env:
-      GH_TOKEN : ${{ secrets.GITHUB_TOKEN }}
+        steps:
+        - name: Checkout code
+          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+          id: checkout
 
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-      id: checkout
-      with:
-        lfs: true
+        - name: Build image within FreeBSD VM (ZFS)
+          uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
+          id: build_images
+          with:
+              usesh: true
+              sync: nfs
+              cpu: 2
+              mem: 4096
+              prepare: |
 
-    - name: Build image within FreeBSD VM (ZFS)
-      uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
-      id: build_images
-      with:
-        envs: 'GH_TOKEN'
-        usesh: true
-        sync: nfs
-        cpu: 2
-        mem: 4096
-        prepare: |
+              run: |
+                  pwd
+                  ls -lah
+                  whoami
+                  env
+                  freebsd-version
+                  uname -a
+                  if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
+                  cd artifacts
+                  for fs in zfs ufs; do
+                      echo "==================== BUILDING FOR ${fs} ===================="
+                      sh ../scripts/build.sh -f ${fs};
+                      for file in *-${fs}-*.raw; do
+                          tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
+                          rm -f ${file}
+                          ls -lah freebsd-${fs}.tar.gz
+                          sha256 freebsd-${fs}.tar.gz
+                      done
+                      echo "================  BUILD COMPLETE FOR ${fs} ================="
+                  done
 
-        run: |
-          pwd
-          ls -lah
-          whoami
-          env
-          freebsd-version
-          uname -a
-          if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
-          cd artifacts
-          for fs in zfs ufs; do
-              echo "==================== BUILDING FOR ${fs} ===================="
-              sh ../scripts/build.sh -f ${fs};
-              for file in *-${fs}-*.raw; do
-                  tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
-                  rm -f ${file}
-                  ls -lah freebsd-${fs}.tar.gz
-                  sha256 freebsd-${fs}.tar.gz
-              done
-              echo "================  BUILD COMPLETE FOR ${fs} ================="
-          done
-
-    - name: Upload to AWS S3
-      uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
-      id: upload_to_s3
-      with:
-        aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws_bucket: ${{ secrets.AWS_BUCKET }}
-        source_dir: './artifacts'
-        destination_dir: 'artifacts'
+        - name: Upload to AWS S3
+          uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
+          id: upload_to_s3
+          with:
+              aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws_bucket: ${{ secrets.AWS_BUCKET }}
+              source_dir: './artifacts'
+              destination_dir: 'artifacts'
