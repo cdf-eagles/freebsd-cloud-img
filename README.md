@@ -1,6 +1,8 @@
 [![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)](https://github.com/pre-commit/pre-commit)
 [![main](https://img.shields.io/badge/main-stable-green.svg?maxAge=2592000)]('')
 [![Build FreeBSD Cloud Images](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/generate_image.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/generate_image.yml)
+[![Publish Web Artifacts](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/publish_web.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/publish_web.yml)
+[![Run Shellcheck](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/shellcheck.yml/badge.svg)](https://github.com/cdf-eagles/freebsd-cloud-img/actions/workflows/shellcheck.yml)
 
 # FreeBSD Cloud-Image (bhyve)
 This is a script/repository for generating an UNOFFICIAL FreeBSD cloud-init enabled image for use with bhyve. These images may also work with OpenStack and/or NoCloud environments.
