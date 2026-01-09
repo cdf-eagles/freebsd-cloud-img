@@ -4,6 +4,7 @@ on:
     push:
         paths:
             - '**.sh'
+            - 'scripts/**.sh'
     pull_request:
         types:
             - opened
@@ -11,6 +12,7 @@ on:
             - reopened
         paths:
             - '**.sh'
+            - 'scripts/**.sh'
     workflow_dispatch:
 
 permissions:
