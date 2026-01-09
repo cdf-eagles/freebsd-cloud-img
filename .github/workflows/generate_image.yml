@@ -1,13 +1,15 @@
+---
 name: Build FreeBSD Cloud Images
 
+# yamllint disable rule:truthy
 on:
     pull_request:
-        types: [ closed ]
-        branches: [ "main" ]
+        types: [closed]
+        branches: ["main"]
         paths:
             - '**.sh'
     schedule:
-        - cron: '15 02 15 * *' # once a month
+        - cron: '15 02 15 * *'  # once a month
     workflow_dispatch:
 
 permissions:
@@ -19,50 +21,54 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - name: Checkout code
-          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-          id: checkout
+            - name: Checkout code
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+              id: checkout
 
-        - name: Build image within FreeBSD VM (ZFS)
-          uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
-          id: build_images
-          with:
-              usesh: true
-              sync: nfs
-              cpu: 2
-              mem: 4096
-              prepare: |
+            - name: Build image within FreeBSD VM (ZFS)
+              # yamllint disable rule:line-length
+              uses: vmactions/freebsd-vm@9832a7f21715c1303a1b9e7c00f96508266b4e09
+              id: build_images
+              with:
+                  usesh: true
+                  sync: nfs
+                  cpu: 2
+                  mem: 4096
+                  prepare: |
 
-              run: |
-                  pwd
-                  ls -lah
-                  whoami
-                  env
-                  freebsd-version
-                  uname -a
-                  if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
-                  cd artifacts
-                  for fs in zfs ufs; do
-                      echo "==================== BUILDING FOR ${fs} ===================="
-                      sh ../scripts/build.sh -f ${fs};
-                      for file in *-${fs}-*.raw; do
-                          echo "> Compressing RAW file to .tar.gz"
-                          tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
-                          echo "> Removing RAW file"
-                          rm -f ${file}
-                          echo "> Size and has of compressed file"
-                          ls -lah freebsd-${fs}.tar.gz
-                          sha256 freebsd-${fs}.tar.gz
+                  run: |
+                      pwd
+                      ls -lah
+                      whoami
+                      env
+                      freebsd-version
+                      uname -a
+                      if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
+                      cd artifacts
+                      for fs in zfs ufs; do
+                          # yamllint disable rule:line-length
+                          echo "==================== BUILDING FOR ${fs} ===================="
+                          sh ../scripts/build.sh -f ${fs};
+                          for file in *-${fs}-*.raw; do
+                              echo "> Compressing RAW file to .tar.gz"
+                              tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
+                              echo "> Removing RAW file"
+                              rm -f ${file}
+                              echo "> Size and has of compressed file"
+                              ls -lah freebsd-${fs}.tar.gz
+                              sha256 freebsd-${fs}.tar.gz
+                          done
+                          # yamllint disable rule:line-length
+                          echo "================  BUILD COMPLETE FOR ${fs} ================="
                       done
-                      echo "================  BUILD COMPLETE FOR ${fs} ================="
-                  done
 
-        - name: Upload to AWS S3
-          uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
-          id: upload_to_s3
-          with:
-              aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-              aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-              aws_bucket: ${{ secrets.AWS_BUCKET }}
-              source_dir: './artifacts'
-              destination_dir: 'artifacts'
+            - name: Upload to AWS S3
+              # yamllint disable rule:line-length
+              uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
+              id: upload_to_s3
+              with:
+                  aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_bucket: ${{ secrets.AWS_BUCKET }}
+                  source_dir: './artifacts'
+                  destination_dir: 'artifacts'

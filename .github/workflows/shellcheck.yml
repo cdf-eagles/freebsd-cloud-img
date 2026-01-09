@@ -1,5 +1,7 @@
+---
 name: Run Shellcheck
 
+# yamllint disable rule:truthy
 on:
     push:
         paths:
@@ -19,17 +21,18 @@ permissions:
     contents: read
 
 jobs:
-  check:
-    name: Execute Shellcheck
-    runs-on: ubuntu-latest
+    check:
+        name: Execute Shellcheck
+        runs-on: ubuntu-latest
 
-    steps:
-        - name: Checkout code
-          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-          id: checkout
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+              id: checkout
 
-        - name: Shellcheck
-          uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
-          id: shellcheck
-          with:
-            scandir: './scripts'
+            - name: Shellcheck
+              # yamllint disable rule:line-length
+              uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
+              id: shellcheck
+              with:
+                  scandir: './scripts'
