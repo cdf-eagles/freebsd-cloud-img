@@ -28,8 +28,8 @@ jobs:
             aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
             aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
             aws_bucket: ${{ secrets.AWS_BUCKET }}
-            source_dir: './web/index.html'
-            destination_dir: 'index.html'
+            source_dir: './web/html'
+            destination_dir: ''
 
         - name: Upload css to AWS S3
           uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
