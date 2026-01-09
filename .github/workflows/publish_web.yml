@@ -1,9 +1,11 @@
+---
 name: Publish Web Artifacts
 
+# yamllint disable rule:truthy
 on:
     pull_request:
-        types: [ closed ]
-        branches: [ "main" ]
+        types: [closed]
+        branches: ["main"]
         paths:
             - 'web/**'
     workflow_dispatch:
@@ -17,26 +19,28 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-        - name: Checkout code
-          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
-          id: checkout
+            - name: Checkout code
+              uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+              id: checkout
 
-        - name: Upload index.html to AWS S3
-          uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
-          id: upload_index_html
-          with:
-            aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws_bucket: ${{ secrets.AWS_BUCKET }}
-            source_dir: './web/html'
-            destination_dir: ''
+            - name: Upload index.html to AWS S3
+              # yamllint disable rule:line-length
+              uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
+              id: upload_index_html
+              with:
+                  aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_bucket: ${{ secrets.AWS_BUCKET }}
+                  source_dir: './web/html'
+                  destination_dir: ''
 
-        - name: Upload css to AWS S3
-          uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
-          id: upload_css
-          with:
-            aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws_bucket: ${{ secrets.AWS_BUCKET }}
-            source_dir: './web/css'
-            destination_dir: 'css'
+            - name: Upload css to AWS S3
+              # yamllint disable rule:line-length
+              uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
+              id: upload_css
+              with:
+                  aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  aws_bucket: ${{ secrets.AWS_BUCKET }}
+                  source_dir: './web/css'
+                  destination_dir: 'css'

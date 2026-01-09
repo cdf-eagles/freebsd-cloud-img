@@ -1,20 +1,20 @@
 ---
-name: Run Shellcheck
+name: Check YAML
 
 # yamllint disable rule:truthy
 on:
     push:
         paths:
-            - '**.sh'
-            - 'scripts/**.sh'
+            - '**.yml'
+            - '**.yaml'
     pull_request:
         types:
             - opened
             - edited
             - reopened
         paths:
-            - '**.sh'
-            - 'scripts/**.sh'
+            - '**.yml'
+            - '**.yaml'
     workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ permissions:
 
 jobs:
     check:
-        name: Execute Shellcheck
+        name: Execute Check YAML
         runs-on: ubuntu-latest
 
         steps:
@@ -30,9 +30,7 @@ jobs:
               uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
               id: checkout
 
-            - name: Shellcheck
+            - name: yaml-lint
               # yamllint disable rule:line-length
-              uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
-              id: shellcheck
-              with:
-                  scandir: './scripts'
+              uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c
+              id: yamllint
