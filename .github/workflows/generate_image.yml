@@ -46,8 +46,11 @@ jobs:
                       echo "==================== BUILDING FOR ${fs} ===================="
                       sh ../scripts/build.sh -f ${fs};
                       for file in *-${fs}-*.raw; do
+                          echo "> Compressing RAW file to .tar.gz"
                           tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
+                          echo "> Removing RAW file"
                           rm -f ${file}
+                          echo "> Size and has of compressed file"
                           ls -lah freebsd-${fs}.tar.gz
                           sha256 freebsd-${fs}.tar.gz
                       done
