@@ -1,0 +1,33 @@
+name: Run Shellcheck
+
+on:
+    push:
+        paths:
+            - '**.sh'
+    pull_request:
+        types:
+            - opened
+            - edited
+            - reopened
+        paths:
+            - '**.sh'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+  check:
+    name: Execute Shellcheck
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+          id: checkout
+
+        - name: Shellcheck
+          uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
+          id: shellcheck
+          with:
+            scandir: './scripts'
