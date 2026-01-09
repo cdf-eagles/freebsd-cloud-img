@@ -15,7 +15,7 @@
 
 MAJOR="1"
 MINOR="0"
-PATCH="0"
+PATCH="1"
 
 # for getopts
 cmdopts="dvhr:f:"
@@ -237,6 +237,8 @@ echo "****"
 # bootstrap pkg and install cloud-init and dependencies
 echo ">>>> Bootstraping pkg"
 pkg bootstrap -f -y
+echo ">>>> Updating pkg repository"
+pkg update -y
 echo ">>>> Installing packages, including cloud-init"
 pkg install -y ca_root_nss python3 qemu-guest-agent py311-cloud-init
 touch /etc/rc.conf
