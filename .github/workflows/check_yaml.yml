@@ -1,0 +1,33 @@
+name: Check YAML
+
+on:
+    push:
+        paths:
+            - '**.yml'
+            - '**.yaml'
+    pull_request:
+        types:
+            - opened
+            - edited
+            - reopened
+        paths:
+            - '**.yml'
+            - '**.yaml'
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+jobs:
+  check:
+    name: Execute Check YAML
+    runs-on: ubuntu-latest
+
+    steps:
+        - name: Checkout code
+          uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+          id: checkout
+
+        - name: yaml-lint
+          uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c
+          id: yamllint
