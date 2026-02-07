@@ -246,6 +246,11 @@ touch /etc/rc.conf
 # clean up pkg configuration
 rm -rf "\${ETCDIR}\"/pkg "\${ETCDIR}\"/pkg.conf
 
+# set timezone to UTC by default
+tzsetup UTC
+echo "==== DEFAULT TIMEZONE ===="
+cat /var/db/zoneinfo
+
 exit 0
 EOF_CLOUDIFY
 
