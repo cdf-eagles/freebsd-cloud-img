@@ -187,6 +187,7 @@ build() {
 
 # needed for pkg operations
 export ABI="FreeBSD:${abi_version}:amd64"
+export OSVERSION=$(sysctl -n kern.osreldate)
 
 # where pkg configuration is located
 export ETCDIR="/usr/local/etc"
@@ -204,6 +205,13 @@ df
 echo "****"
 gpart show
 echo "****"
+
+# ensure OSVERSION is set globally for the system
+echo ">>>> Create /etc/profile.d/OSVERSION.sh"
+cat <<EOF_OSVERSION > /etc/profile.d/OSVERSION.sh
+export OSVERSION=$(sysctl -n kern.osreldate)
+EOF_OSVERSION
+chmod 444 /etc/profile.d/OSVERSION.sh
 
 # create pkg.conf
 echo ">>>> Create pkg.conf"
