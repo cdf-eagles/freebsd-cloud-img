@@ -181,6 +181,7 @@ build() {
     done
 
     echo ">>> Creating custom script (cloudify.sh) to bootstrap cloud-init"
+    # shellcheck disable=SC2006 # C-Shell does not have $() syntax
     cat <<EOF_CLOUDIFY >"${mnt_dir}"/tmp/cloudify.sh
 #!/bin/sh
 #
@@ -212,6 +213,8 @@ cat <<EOF_OSVERSION > /etc/profile.d/OSVERSION.sh
 export OSVERSION=$(sysctl -n kern.osreldate)
 EOF_OSVERSION
 chmod 444 /etc/profile.d/OSVERSION.sh
+echo ">>>> Configure OSVERSION for C-Shell"
+echo 'setenv OSVERSION `sysctl -n kern.osreldate`' >> /etc/csh.cshrc
 
 # create pkg.conf
 echo ">>>> Create pkg.conf"
