@@ -27,6 +27,6 @@ Usage: build.sh [-d] [-v] [-r <FreeBSD Release>] [-f <root fstype>]
 `build.sh -d -f ufs`
 
 # Download Images
-Images are generated on the 15th of every month via GitHub Actions. They can be downloaded here:
-* [ZFS](https://d14vrbqi5qyyq7.cloudfront.net/artifacts/freebsd-zfs.tar.gz)
-* [UFS](https://d14vrbqi5qyyq7.cloudfront.net/artifacts/freebsd-ufs.tar.gz)
+Images are generated on the 15th of every month via GitHub Actions. They can be downloaded [here](http://freebsd-images.s3-website-us-east-1.amazonaws.com):
+* [ZFS](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz)
+* [UFS](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz)
