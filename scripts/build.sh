@@ -254,8 +254,10 @@ echo ">>>> Installing packages, including cloud-init"
 pkg install -y ca_root_nss python3 qemu-guest-agent py311-cloud-init
 touch /etc/rc.conf
 
-# clean up pkg configuration
-rm -rf "\${ETCDIR}\"/pkg "\${ETCDIR}\"/pkg.conf
+# clean up pkg configuration, so the image does not keep the build-time ABI
+# pin (it makes pkg reject new catalogs once OSVERSION is unset) or the
+# plain-http repository override
+rm -rf "\${ETCDIR}/pkg" "\${ETCDIR}/pkg.conf"
 
 # set timezone to UTC by default
 tzsetup UTC
