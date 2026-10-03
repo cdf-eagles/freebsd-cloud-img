@@ -30,7 +30,6 @@ jobs:
               uses: vmactions/freebsd-vm@77ed28d336d03fe19a3f4f7266c1d2c4714dd79d
               id: build_images
               with:
-                  # keep in sync with the RELEASE default in scripts/build.sh
                   release: "15.1"
                   usesh: true
                   sync: nfs
@@ -56,7 +55,7 @@ jobs:
                               tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
                               echo "> Removing RAW file"
                               rm -f ${file}
-                              echo "> Size and has of compressed file"
+                              echo "> Size and hash of compressed file"
                               ls -lah freebsd-${fs}.tar.gz
                               sha256 freebsd-${fs}.tar.gz
                           done
