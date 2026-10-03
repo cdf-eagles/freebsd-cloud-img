@@ -4,7 +4,12 @@ name: Build FreeBSD Cloud Images
 # yamllint disable rule:truthy
 on:
     pull_request:
-        types: [closed]
+        types: [opened, synchronize, reopened]
+        branches: ["main"]
+        paths:
+            - 'scripts/build.sh'
+            - '.github/workflows/generate_image.yml'
+    push:
         branches: ["main"]
         paths:
             - 'scripts/build.sh'
@@ -15,23 +20,29 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # yamllint disable rule:line-length
 jobs:
     build_image:
         name: Build ${{ matrix.fs }} image
-        if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
         runs-on: ubuntu-latest
+        timeout-minutes: 30
         strategy:
             matrix:
                 fs: [zfs, ufs]
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
               id: checkout
+              with:
+                  persist-credentials: false
 
             - name: Build ${{ matrix.fs }} image within FreeBSD VM
-              uses: vmactions/freebsd-vm@c46abacb49f09938ca4e1702d15d836285d694cc
+              uses: vmactions/freebsd-vm@c46abacb49f09938ca4e1702d15d836285d694cc  # v1.5.9
               id: build_image
               with:
                   release: "15.1"
@@ -65,7 +76,7 @@ jobs:
                       echo "================  BUILD COMPLETE FOR ${fs} ================="
 
             - name: Keep the compressed image for publishing
-              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
               id: keep_image
               with:
                   name: image-${{ matrix.fs }}
@@ -77,16 +88,53 @@ jobs:
     publish_images:
         name: Publish images to AWS S3
         needs: build_image
+        if: github.event_name != 'pull_request'
         runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
+            id-token: write
+            attestations: write
+        concurrency:
+            group: publish-s3
+            cancel-in-progress: false
 
         steps:
             - name: Download the compressed images
-              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
               id: fetch_images
               with:
                   pattern: image-*
                   merge-multiple: true
                   path: artifacts
+
+            - name: Create the checksum file
+              id: checksum
+              working-directory: artifacts
+              run: |
+                  sha256sum -- *.tar.gz > SHA256SUMS
+                  cat SHA256SUMS
+
+            - name: Attest the build provenance of the ZFS image
+              uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+              id: attest_zfs
+              with:
+                  subject-path: 'artifacts/freebsd-zfs.tar.gz'
+
+            - name: Attest the build provenance of the UFS image
+              uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6  # v4.2.2
+              id: attest_ufs
+              with:
+                  subject-path: 'artifacts/freebsd-ufs.tar.gz'
+
+            - name: Put the attestation bundles next to the images
+              id: bundles
+              env:
+                  ZFS_BUNDLE: ${{ steps.attest_zfs.outputs.bundle-path }}
+                  UFS_BUNDLE: ${{ steps.attest_ufs.outputs.bundle-path }}
+              run: |
+                  cp "${ZFS_BUNDLE}" artifacts/freebsd-zfs.tar.gz.sigstore.json
+                  cp "${UFS_BUNDLE}" artifacts/freebsd-ufs.tar.gz.sigstore.json
 
             - name: Upload to AWS S3
               id: upload_to_s3
@@ -95,4 +143,7 @@ jobs:
                   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
                   AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
                   AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
-              run: aws s3 sync ./artifacts "s3://${AWS_BUCKET}/artifacts/" --content-type application/gzip --no-progress
+              run: |
+                  aws s3 sync ./artifacts "s3://${AWS_BUCKET}/artifacts/" --exclude '*' --include '*.tar.gz' --content-type application/gzip --no-progress
+                  aws s3 sync ./artifacts "s3://${AWS_BUCKET}/artifacts/" --exclude '*' --include '*.sigstore.json' --content-type application/json --cache-control no-cache --no-progress
+                  aws s3 sync ./artifacts "s3://${AWS_BUCKET}/artifacts/" --exclude '*' --include 'SHA256SUMS' --content-type text/plain --cache-control no-cache --no-progress

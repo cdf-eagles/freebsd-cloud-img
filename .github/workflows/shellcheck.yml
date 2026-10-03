@@ -12,6 +12,7 @@ on:
             - opened
             - edited
             - reopened
+            - synchronize
         paths:
             - '**.sh'
             - 'scripts/**.sh'
@@ -20,19 +21,26 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+# yamllint disable rule:line-length
 jobs:
     check:
         name: Execute Shellcheck
         runs-on: ubuntu-latest
+        timeout-minutes: 10
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
               id: checkout
+              with:
+                  persist-credentials: false
 
             - name: Shellcheck
-              # yamllint disable rule:line-length
-              uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38
+              uses: ludeeus/action-shellcheck@00cae500b08a931fb5698e11e79bfbd38e612a38  # 2.0.0
               id: shellcheck
               with:
                   scandir: './scripts'

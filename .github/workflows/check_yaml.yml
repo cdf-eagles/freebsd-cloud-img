@@ -12,6 +12,7 @@ on:
             - opened
             - edited
             - reopened
+            - synchronize
         paths:
             - '**.yml'
             - '**.yaml'
@@ -20,17 +21,31 @@ on:
 permissions:
     contents: read
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+# yamllint disable rule:line-length
 jobs:
     check:
         name: Execute Check YAML
         runs-on: ubuntu-latest
+        timeout-minutes: 10
 
         steps:
             - name: Checkout code
-              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
               id: checkout
+              with:
+                  persist-credentials: false
 
             - name: yaml-lint
-              # yamllint disable rule:line-length
-              uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c
+              uses: ibiqlik/action-yamllint@2576378a8e339169678f9939646ee3ee325e845c  # v3.1.1
               id: yamllint
+
+            - name: actionlint
+              if: ${{ !cancelled() }}
+              uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7  # v2.2.0
+              id: actionlint
+              with:
+                  version: "1.7.12"
