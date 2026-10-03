@@ -13,15 +13,17 @@ Original code was taken from [Virt-Lightning](https://github.com/virt-lightning/
 ```
 Usage: build.sh [-d] [-v] [-r <FreeBSD Release>] [-f <root fstype>]
   -d,    Enable debug mode for script AND image (sets a root password in the image).    EnvVar:DEBUG
-  -r,    FreeBSD Release to download. [Default: 15.0]                                   EnvVar:RELEASE
+  -r,    FreeBSD Release to download. [Default: 15.1]                                   EnvVar:RELEASE
   -f,    Root filesystem type (zfs or ufs). [Default: zfs]                              EnvVar:ROOT_FS
   -v,    Script version information.
   -h,    Display usage.
 ```
 
+A build stops with an explanatory error once the selected release has passed its end-of-life date (`freebsd-update` refuses to continue). Pick a [supported release](https://www.freebsd.org/security/#sup) and, for the monthly workflow, update the `RELEASE` default in `scripts/build.sh` and the `release` of the build VM in `.github/workflows/generate_image.yml`.
+
 # Examples
-## Build a regular 15.0-RELEASE image with a ZFS root
-`build.sh -r 15.0 -f zfs`
+## Build a regular 15.1-RELEASE image with a ZFS root
+`build.sh -r 15.1 -f zfs`
 
 ## Build a DEBUG-enabled (root password set) image with a UFS root
 `build.sh -d -f ufs`
