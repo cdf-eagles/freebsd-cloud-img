@@ -1,10 +1,15 @@
 # Changelog
 
-- 2026-10-03: `ROOT_FS` in the environment now selects the root filesystem, as the usage text documents. The script read `ROOTFS` instead, so `ROOT_FS` was ignored.
-- 2026-10-03: `-d` now sets `DEBUG`, so a debug build sets the root password in the image as documented. Before, `-d` only enabled shell tracing and verbose tar output.
-- 2026-10-03: The root account is now locked in built images (`pw usermod -n root -w no`). The command was appended to `cloudify.sh` after its `exit 0` and never ran.
-- 2026-10-03: cloud-init is installed from the package matching the installed Python (`py312-cloud-init`) instead of a fixed `py311-cloud-init`, which the package repository no longer carries. Images built from 2026-07-15 to 2026-10-03 lack cloud-init, python3, qemu-guest-agent and ca_root_nss.
-- 2026-10-03: The build now fails if a package install fails or a required package is missing afterwards. Before, the build passed and uploaded the incomplete image.
-- 2026-10-03: Builds default to FreeBSD 15.1-RELEASE and the build VM is pinned to 15.1. 15.0-RELEASE reached end-of-life on 2026-09-30.
-- 2026-10-03: The build stops with an explicit error when `freebsd-update` reports an end-of-life release. Before, it ended with only `ssh exited with code 1`.
-- 2026-09-28: The build-time pkg configuration is now removed from the image. The cleanup had misplaced quotes and never matched, so every earlier image kept the ABI pin and the plain-http repository override.
+- 2026-10-03
+  - The image build and web publish workflows run on a closed pull request only when it was merged. Before, a pull request closed without merging still built the images or published the web files and uploaded them to S3.
+  - The RAW image is created with `truncate -s` instead of `dd` and compressed with `gzip -1` instead of `gzip -9`. On the 2026-10-03 run these two steps took about 100 s and 420 s of 1046 s.
+  - The ZFS and UFS images build in parallel as a matrix, and a final job publishes both to S3 only when both succeed. Before, one job built them one after the other.
+  - `ROOT_FS` in the environment now selects the root filesystem, as the usage text documents. The script read `ROOTFS` instead, so `ROOT_FS` was ignored.
+  - `-d` now sets `DEBUG`, so a debug build sets the root password in the image as documented. Before, `-d` only enabled shell tracing and verbose tar output.
+  - The root account is now locked in built images (`pw usermod -n root -w no`). The command was appended to `cloudify.sh` after its `exit 0` and never ran.
+  - cloud-init is installed from the package matching the installed Python (`py312-cloud-init`) instead of a fixed `py311-cloud-init`, which the package repository no longer carries. Images built from 2026-07-15 to 2026-10-03 lack cloud-init, python3, qemu-guest-agent and ca_root_nss.
+  - The build now fails if a package install fails or a required package is missing afterwards. Before, the build passed and uploaded the incomplete image.
+  - Builds default to FreeBSD 15.1-RELEASE and the build VM is pinned to 15.1. 15.0-RELEASE reached end-of-life on 2026-09-30.
+  - The build stops with an explicit error when `freebsd-update` reports an end-of-life release. Before, it ended with only `ssh exited with code 1`.
+- 2026-09-28
+  - The build-time pkg configuration is now removed from the image. The cleanup had misplaced quotes and never matched, so every earlier image kept the ABI pin and the plain-http repository override.

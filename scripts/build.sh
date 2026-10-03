@@ -121,8 +121,9 @@ build() {
         gptboot="/boot/gptboot"
     fi
 
-    echo ">>> Creating RAW image file bs=${image_blocksize} count=${image_bs_count}"
-    dd if=/dev/zero of="${image_file}" bs="${image_blocksize}" count="${image_bs_count}" || return 1
+    echo ">>> Creating sparse RAW image file bs=${image_blocksize} count=${image_bs_count}"
+    rm -f "${image_file}"
+    truncate -s "$((image_blocksize * image_bs_count))" "${image_file}" || return 1
 
     echo ">>> Creating memory device from ${image_file}"
     md_dev=$(mdconfig -a -t vnode -f "${image_file}")
