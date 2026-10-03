@@ -1,6 +1,8 @@
 # Changelog
 
 - 2026-10-03
+  - The S3 uploads use `aws s3 sync` from the AWS CLI on the runner instead of `parth-paradkar/upload-s3-without-acl`, which has had no release or push since 2024-09-26, runs on Node 20 and receives the AWS secret key. The bucket paths, the credentials and the `application/gzip` type of the images are unchanged, and nothing is deleted from the bucket.
+  - The image build starts on a merged pull request only when `scripts/build.sh` changes. Before, any `.sh` file matched, so merging `scripts/check_cloudify.sh` rebuilt and republished both images.
   - The build VM action `vmactions/freebsd-vm` is updated from v1.5.2 to v1.5.9. The inputs the workflow uses are unchanged, and the new version is first exercised by a manual run or the monthly schedule because the image build does not run on a workflow-only pull request.
   - Pull requests and pushes that change a shell script now also syntax-check and shellcheck the `cloudify.sh` that `build.sh` generates, for a normal and a debug build (`scripts/check_cloudify.sh`, about a second). Before, only `build.sh` itself was checked, and its `cloudify.sh` heredoc was never parsed as a script.
   - The image build and web publish workflows run on a closed pull request only when it was merged. Before, a pull request closed without merging still built the images or published the web files and uploaded them to S3.
