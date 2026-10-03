@@ -24,7 +24,7 @@ cmdopts="dvhr:f:"
 # shellcheck disable=SC3040 # pipefail exists in FreeBSD sh
 set -euo pipefail
 DEBUG=${DEBUG:-0}
-RELEASE=${RELEASE:-15.0}
+RELEASE=${RELEASE:-15.1}
 ROOT_FS=${ROOTFS:-zfs}
 FS_TYPES="zfs ufs"
 TAROPTS=""
@@ -35,7 +35,7 @@ usage() {
     cmdname=$(basename "$0")
     echo "Usage: $cmdname [-d] [-v] [-r <FreeBSD Release>] [-f <root fstype>]"
     echo "  -d,    Enable debug mode for script AND image (sets a root password in the image).    EnvVar:DEBUG "
-    echo "  -r,    FreeBSD Release to download. [Default: 15.0]                                   EnvVar:RELEASE"
+    echo "  -r,    FreeBSD Release to download. [Default: 15.1]                                   EnvVar:RELEASE"
     echo "  -f,    Root filesystem type (zfs or ufs). [Default: zfs]                              EnvVar:ROOT_FS"
     echo "  -v,    Script version information."
     echo "  -h,    Display usage/help."
@@ -287,7 +287,24 @@ EOF_CLOUDIFY
     export ASSUME_ALWAYS_YES=YES
     export PAGER="cat"
     export LESS='-F -R'
-    freebsd-update -b "${mnt_dir}" --currently-running "${fbsd_release}"-RELEASE fetch --not-running-from-cron
+    # freebsd-update returns 1 after a successful fetch once the release is past its end-of-life
+    # date, and set -e would then end the build with no explanation, so keep its output to check
+    update_log=$(mktemp "${TMPDIR:-/tmp}/freebsd-update.XXXXXX")
+    update_rc=0
+    freebsd-update -b "${mnt_dir}" --currently-running "${fbsd_release}"-RELEASE fetch --not-running-from-cron 2>&1 | tee "${update_log}" || update_rc=$?
+    update_eol=0
+    if grep -q "HAS PASSED ITS END-OF-LIFE DATE" "${update_log}"; then update_eol=1; fi
+    rm -f "${update_log}"
+    if [ "${update_rc}" -ne 0 ]; then
+        if [ "${update_eol}" -eq 1 ]; then
+            echo "ERROR: FreeBSD ${fbsd_release}-RELEASE has passed its end-of-life date, so freebsd-update refuses to continue." >&2
+            echo "ERROR: Build a supported release (https://www.freebsd.org/security/#sup): change the RELEASE default in" >&2
+            echo "ERROR: scripts/build.sh (or pass -r) and the release of the build VM in .github/workflows/generate_image.yml." >&2
+        else
+            echo "ERROR: freebsd-update fetch for ${fbsd_release}-RELEASE failed with exit code ${update_rc}." >&2
+        fi
+        return 1
+    fi
     freebsd-update -b "${mnt_dir}" --currently-running "${fbsd_release}"-RELEASE install
     unset ASSUME_ALWAYS_YES PAGER LESS
 

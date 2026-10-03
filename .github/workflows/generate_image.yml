@@ -30,6 +30,8 @@ jobs:
               uses: vmactions/freebsd-vm@77ed28d336d03fe19a3f4f7266c1d2c4714dd79d
               id: build_images
               with:
+                  # keep in sync with the RELEASE default in scripts/build.sh
+                  release: "15.1"
                   usesh: true
                   sync: nfs
                   cpu: 2
