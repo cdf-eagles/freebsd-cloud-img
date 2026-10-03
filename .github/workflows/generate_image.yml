@@ -7,7 +7,7 @@ on:
         types: [closed]
         branches: ["main"]
         paths:
-            - '**.sh'
+            - 'scripts/build.sh'
     schedule:
         - cron: '15 02 15 * *'  # once a month
     workflow_dispatch:
@@ -89,11 +89,10 @@ jobs:
                   path: artifacts
 
             - name: Upload to AWS S3
-              uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
               id: upload_to_s3
-              with:
-                  aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  aws_bucket: ${{ secrets.AWS_BUCKET }}
-                  source_dir: './artifacts'
-                  destination_dir: 'artifacts'
+              env:
+                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
+                  AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
+              run: aws s3 sync ./artifacts "s3://${AWS_BUCKET}/artifacts/" --content-type application/gzip --no-progress
