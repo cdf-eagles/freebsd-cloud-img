@@ -74,6 +74,41 @@ if [ "$DEBUG" -eq 1 ]; then
     enable_debug
 fi
 
+# manifest_sha256() - print the sha256 that a release MANIFEST lists for a file
+#
+# Inputs: $1 = path to the MANIFEST file
+#         $2 = file name in the release directory (e.g. base.txz)
+#
+# Outputs: Prints the hash, or nothing if the file is not listed.
+#
+manifest_sha256() {
+    awk -v name="$2" '$1 == name { print $2 }' "$1"
+}
+
+# verify_sha256() - check a file against an expected sha256
+#
+# Inputs: $1 = path to the file
+#         $2 = expected sha256 (64 lower-case hex digits)
+#
+# Outputs: Returns 0 if the file matches, 1 if it does not or if $2 is not a sha256.
+#
+verify_sha256() {
+    expected=$2
+    case "${expected}" in
+        ""|*[!0-9a-f]*) echo "ERROR: no valid sha256 is listed for the file." >&2; return 1 ;;
+    esac
+    if [ "${#expected}" -ne 64 ]; then
+        echo "ERROR: the listed sha256 '${expected}' is not 64 hex digits long." >&2
+        return 1
+    fi
+    actual=$(sha256 -q "$1")
+    if [ "${actual}" != "${expected}" ]; then
+        echo "ERROR: sha256 of the download is ${actual}, expected ${expected}." >&2
+        return 1
+    fi
+    return 0
+}
+
 # build() - main operations
 #
 # Inputs: $1 = FreeBSD release to download in MAJOR.MINOR format (e.g. 15.0)
@@ -88,7 +123,7 @@ build() {
     fs_check=$(echo "${FS_TYPES}" | grep -c "${root_fs}")
     if [ "${fs_check}" -eq "0" ]; then echo "ERROR: '${root_fs}' is not one of '${FS_TYPES}'"; return 1; fi
 
-    BASE_URL="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${fbsd_release}-RELEASE"
+    BASE_URL="https://download.freebsd.org/releases/amd64/${fbsd_release}-RELEASE"
     ISO_DATE=$(date '+%Y-%m-%d')
 
     # used in pkg configuration
@@ -108,9 +143,14 @@ build() {
     # cloud-init configuration direction within the image
     cloud_dir="${mnt_dir}/usr/local/etc/cloud"
 
-    echo ">>> Checking FreeBSD-${fbsd_release}-RELEASE base URL"
-    if ! fetch -o /dev/null -q "$BASE_URL"; then
-        BASE_URL="http://ftp-archive.freebsd.org/pub/FreeBSD-Archive/old-releases/amd64/${fbsd_release}-RELEASE"
+    echo ">>> Fetching the FreeBSD-${fbsd_release}-RELEASE MANIFEST"
+    manifest=$(mktemp "${TMPDIR:-/tmp}/freebsd-manifest.XXXXXX")
+    if ! fetch -q -o "${manifest}" "${BASE_URL}/MANIFEST"; then
+        rm -f "${manifest}"
+        echo "ERROR: unable to fetch ${BASE_URL}/MANIFEST." >&2
+        echo "ERROR: Archived releases are only served over HTTP and are not supported. Pick a release that is on" >&2
+        echo "ERROR: download.freebsd.org (https://www.freebsd.org/security/#sup)." >&2
+        return 1
     fi
 
     if [ "${root_fs}" = "zfs" ]; then
@@ -178,9 +218,26 @@ build() {
 
     for fbsd_pkg in base kernel
     do
-        echo ">>> Fetching and extracting ${fbsd_pkg}.txz installation package..."
-        fetch -o - "${BASE_URL}/${fbsd_pkg}.txz" | tar "${TAROPTS}xf" - -C "${mnt_dir}"
+        echo ">>> Fetching ${fbsd_pkg}.txz installation package..."
+        pkg_file=$(mktemp "${TMPDIR:-/tmp}/freebsd-${fbsd_pkg}.XXXXXX")
+        if ! fetch -q -o "${pkg_file}" "${BASE_URL}/${fbsd_pkg}.txz"; then
+            rm -f "${pkg_file}" "${manifest}"
+            echo "ERROR: unable to fetch ${BASE_URL}/${fbsd_pkg}.txz." >&2
+            return 1
+        fi
+
+        echo ">>> Verifying ${fbsd_pkg}.txz against the MANIFEST"
+        if ! verify_sha256 "${pkg_file}" "$(manifest_sha256 "${manifest}" "${fbsd_pkg}.txz")"; then
+            rm -f "${pkg_file}" "${manifest}"
+            echo "ERROR: ${fbsd_pkg}.txz does not match the sha256 in ${BASE_URL}/MANIFEST." >&2
+            return 1
+        fi
+
+        echo ">>> Extracting ${fbsd_pkg}.txz installation package..."
+        tar "${TAROPTS}xf" "${pkg_file}" -C "${mnt_dir}"
+        rm -f "${pkg_file}"
     done
+    rm -f "${manifest}"
 
     echo ">>> Creating custom script (cloudify.sh) to bootstrap cloud-init"
     # shellcheck disable=SC2006 # C-Shell does not have $() syntax

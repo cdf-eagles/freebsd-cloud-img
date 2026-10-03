@@ -52,6 +52,21 @@ a:focus {
         color: #F88017;
 }
 
+/* checksums */
+code {
+        font-family: monospace;
+        font-size: 0.9em;
+        word-break: break-all;
+}
+
+code.sha256 {
+        display: block;
+}
+
+code.sha256:empty {
+        display: none;
+}
+
 /* formatting and fonts */
 p.HeaderFooter,
 li.HeaderFooter,
