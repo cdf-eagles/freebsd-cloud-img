@@ -1,6 +1,7 @@
 # Changelog
 
 - 2026-10-03
+  - The build VM action `vmactions/freebsd-vm` is updated from v1.5.2 to v1.5.9. The inputs the workflow uses are unchanged, and the new version is first exercised by a manual run or the monthly schedule because the image build does not run on a workflow-only pull request.
   - Pull requests and pushes that change a shell script now also syntax-check and shellcheck the `cloudify.sh` that `build.sh` generates, for a normal and a debug build (`scripts/check_cloudify.sh`, about a second). Before, only `build.sh` itself was checked, and its `cloudify.sh` heredoc was never parsed as a script.
   - The image build and web publish workflows run on a closed pull request only when it was merged. Before, a pull request closed without merging still built the images or published the web files and uploaded them to S3.
   - The RAW image is created with `truncate -s` instead of `dd` and compressed with `gzip -1` instead of `gzip -9`. On the 2026-10-03 run these two steps took about 100 s and 420 s of 1046 s.
