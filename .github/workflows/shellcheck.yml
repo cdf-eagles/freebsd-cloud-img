@@ -36,3 +36,8 @@ jobs:
               id: shellcheck
               with:
                   scandir: './scripts'
+
+            - name: Check generated cloudify.sh
+              if: ${{ !cancelled() }}
+              run: sh scripts/check_cloudify.sh
+              id: cloudify

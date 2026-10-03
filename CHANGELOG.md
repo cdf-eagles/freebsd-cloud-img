@@ -1,6 +1,7 @@
 # Changelog
 
 - 2026-10-03
+  - Pull requests and pushes that change a shell script now also syntax-check and shellcheck the `cloudify.sh` that `build.sh` generates, for a normal and a debug build (`scripts/check_cloudify.sh`, about a second). Before, only `build.sh` itself was checked, and its `cloudify.sh` heredoc was never parsed as a script.
   - The image build and web publish workflows run on a closed pull request only when it was merged. Before, a pull request closed without merging still built the images or published the web files and uploaded them to S3.
   - The RAW image is created with `truncate -s` instead of `dd` and compressed with `gzip -1` instead of `gzip -9`. On the 2026-10-03 run these two steps took about 100 s and 420 s of 1046 s.
   - The ZFS and UFS images build in parallel as a matrix, and a final job publishes both to S3 only when both succeed. Before, one job built them one after the other.
