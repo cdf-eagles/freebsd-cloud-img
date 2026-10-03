@@ -31,7 +31,7 @@ jobs:
               id: checkout
 
             - name: Build ${{ matrix.fs }} image within FreeBSD VM
-              uses: vmactions/freebsd-vm@77ed28d336d03fe19a3f4f7266c1d2c4714dd79d
+              uses: vmactions/freebsd-vm@c46abacb49f09938ca4e1702d15d836285d694cc
               id: build_image
               with:
                   release: "15.1"
