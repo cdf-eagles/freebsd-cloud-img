@@ -15,20 +15,24 @@ on:
 permissions:
     contents: read
 
+# yamllint disable rule:line-length
 jobs:
-    generate_images:
-        name: Build FreeBSD cloud-init Image
+    build_image:
+        name: Build ${{ matrix.fs }} image
+        if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
         runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                fs: [zfs, ufs]
 
         steps:
             - name: Checkout code
               uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
               id: checkout
 
-            - name: Build image within FreeBSD VM (ZFS)
-              # yamllint disable rule:line-length
+            - name: Build ${{ matrix.fs }} image within FreeBSD VM
               uses: vmactions/freebsd-vm@77ed28d336d03fe19a3f4f7266c1d2c4714dd79d
-              id: build_images
+              id: build_image
               with:
                   release: "15.1"
                   usesh: true
@@ -46,25 +50,45 @@ jobs:
                       uname -a
                       if [ ! -d "./artifacts" ]; then mkdir -p ./artifacts; fi
                       cd artifacts
-                      for fs in zfs ufs; do
-                          # yamllint disable rule:line-length
-                          echo "==================== BUILDING FOR ${fs} ===================="
-                          sh ../scripts/build.sh -f ${fs};
-                          for file in *-${fs}-*.raw; do
-                              echo "> Compressing RAW file to .tar.gz"
-                              tar cf - $file | gzip -9 > freebsd-${fs}.tar.gz
-                              echo "> Removing RAW file"
-                              rm -f ${file}
-                              echo "> Size and hash of compressed file"
-                              ls -lah freebsd-${fs}.tar.gz
-                              sha256 freebsd-${fs}.tar.gz
-                          done
-                          # yamllint disable rule:line-length
-                          echo "================  BUILD COMPLETE FOR ${fs} ================="
+                      fs="${{ matrix.fs }}"
+                      echo "==================== BUILDING FOR ${fs} ===================="
+                      sh ../scripts/build.sh -f ${fs};
+                      for file in *-${fs}-*.raw; do
+                          echo "> Compressing RAW file to .tar.gz"
+                          tar cf - $file | gzip -1 > freebsd-${fs}.tar.gz
+                          echo "> Removing RAW file"
+                          rm -f ${file}
+                          echo "> Size and hash of compressed file"
+                          ls -lah freebsd-${fs}.tar.gz
+                          sha256 freebsd-${fs}.tar.gz
                       done
+                      echo "================  BUILD COMPLETE FOR ${fs} ================="
+
+            - name: Keep the compressed image for publishing
+              uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+              id: keep_image
+              with:
+                  name: image-${{ matrix.fs }}
+                  path: artifacts/freebsd-${{ matrix.fs }}.tar.gz
+                  if-no-files-found: error
+                  compression-level: 0
+                  retention-days: 1
+
+    publish_images:
+        name: Publish images to AWS S3
+        needs: build_image
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Download the compressed images
+              uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+              id: fetch_images
+              with:
+                  pattern: image-*
+                  merge-multiple: true
+                  path: artifacts
 
             - name: Upload to AWS S3
-              # yamllint disable rule:line-length
               uses: parth-paradkar/upload-s3-without-acl@68848b62953464adb87bd48793f7ec58b8af427c
               id: upload_to_s3
               with:
