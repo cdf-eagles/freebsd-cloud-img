@@ -25,7 +25,7 @@ cmdopts="dvhr:f:"
 set -euo pipefail
 DEBUG=${DEBUG:-0}
 RELEASE=${RELEASE:-15.1}
-ROOT_FS=${ROOTFS:-zfs}
+ROOT_FS=${ROOT_FS:-zfs}
 FS_TYPES="zfs ufs"
 TAROPTS=""
 
@@ -46,6 +46,7 @@ usage() {
 enable_debug() {
     # shellcheck disable=SC3040 # pipefail exists in FreeBSD sh
     set -euxo pipefail
+    DEBUG=1
     TAROPTS="v"
 }
 
@@ -251,30 +252,40 @@ pkg bootstrap -f -y
 echo ">>>> Updating pkg repository"
 pkg update
 echo ">>>> Installing packages, including cloud-init"
-pkg install -y ca_root_nss python3 qemu-guest-agent py311-cloud-init
+pkg install -y ca_root_nss python3 qemu-guest-agent || { echo "ERROR: unable to install ca_root_nss, python3 and qemu-guest-agent"; exit 1; }
+
+# derive the Python flavor (e.g. py312) from the installed python3
+PYFLAVOR=\$(/usr/local/bin/python3 -c 'import sys; print("py%d%d" % sys.version_info[:2])') || { echo "ERROR: unable to determine the installed Python version"; exit 1; }
+echo ">>>> Installing \${PYFLAVOR}-cloud-init"
+pkg install -y "\${PYFLAVOR}-cloud-init" || { echo "ERROR: unable to install \${PYFLAVOR}-cloud-init"; exit 1; }
+
+for pkgname in ca_root_nss python3 qemu-guest-agent "\${PYFLAVOR}-cloud-init"; do
+    pkg info -e "\${pkgname}" || { echo "ERROR: \${pkgname} is not installed in the image"; exit 1; }
+done
 touch /etc/rc.conf
 
-# clean up pkg configuration, so the image does not keep the build-time ABI
-# pin (it makes pkg reject new catalogs once OSVERSION is unset) or the
-# plain-http repository override
+# remove the build-time pkg configuration
 rm -rf "\${ETCDIR}/pkg" "\${ETCDIR}/pkg.conf"
 
 # set timezone to UTC by default
 tzsetup UTC
 echo "==== DEFAULT TIMEZONE ===="
 cat /var/db/zoneinfo
-
-exit 0
 EOF_CLOUDIFY
 
     if [ "$DEBUG" -eq "1" ]; then  # Lock root account unless DEBUG enabled
         # Generate a root password
         ROOTPW=$(openssl rand -base64 16 | sed 's/..$//')
-        echo "echo '${ROOTPW}' | pw usermod -n root -h 0" >> ${mnt_dir}/tmp/cloudify.sh
+        echo "echo '${ROOTPW}' | pw usermod -n root -h 0 || exit 1" >> ${mnt_dir}/tmp/cloudify.sh
         echo ">>> DEBUG: root password is set to '$ROOTPW'"
     else
-        echo "pw mod user root -w no" >> ${mnt_dir}/tmp/cloudify.sh
+        {
+            echo "pw usermod -n root -w no || exit 1"
+            echo "grep -q '^root:[*]:' /etc/master.passwd || { echo 'ERROR: root account is not locked'; exit 1; }"
+            echo "echo '>>>> Root account is locked'"
+        } >> ${mnt_dir}/tmp/cloudify.sh
     fi
+    echo "exit 0" >> ${mnt_dir}/tmp/cloudify.sh
 
     chmod +x "${mnt_dir}"/tmp/cloudify.sh
 
@@ -287,8 +298,7 @@ EOF_CLOUDIFY
     export ASSUME_ALWAYS_YES=YES
     export PAGER="cat"
     export LESS='-F -R'
-    # freebsd-update returns 1 after a successful fetch once the release is past its end-of-life
-    # date, and set -e would then end the build with no explanation, so keep its output to check
+    # keep the freebsd-update output to detect its end-of-life warning
     update_log=$(mktemp "${TMPDIR:-/tmp}/freebsd-update.XXXXXX")
     update_rc=0
     freebsd-update -b "${mnt_dir}" --currently-running "${fbsd_release}"-RELEASE fetch --not-running-from-cron 2>&1 | tee "${update_log}" || update_rc=$?
