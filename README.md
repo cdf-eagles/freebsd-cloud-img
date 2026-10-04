@@ -32,11 +32,11 @@ The release is downloaded over HTTPS from `download.freebsd.org` and each file i
 
 # Download Images
 Images are generated on the 15th of every month via GitHub Actions. They can be downloaded [here](http://freebsd-images.s3-website-us-east-1.amazonaws.com):
-* [ZFS](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz)
-* [UFS](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz)
-* [SHA256SUMS](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/SHA256SUMS)
-* [ZFS attestation](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz.sigstore.json)
-* [UFS attestation](http://freebsd-images.s3-website-us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz.sigstore.json)
+* [ZFS](https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz)
+* [UFS](https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz)
+* [SHA256SUMS](https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/SHA256SUMS)
+* [ZFS attestation](https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz.sigstore.json)
+* [UFS attestation](https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz.sigstore.json)
 
 Verify a download with `sha256sum -c --ignore-missing SHA256SUMS` (GNU coreutils) or compare the output of `sha256 <file>` on FreeBSD with the entry in `SHA256SUMS`. The web page shows the checksum next to each download.
 

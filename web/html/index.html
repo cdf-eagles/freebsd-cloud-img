@@ -29,8 +29,8 @@
                     <p>Compressed RAW disk image with a ZFS root filesystem.</p>
                     <p class="meta" hidden></p>
                     <div class="actions">
-                        <a class="button" href="/artifacts/freebsd-zfs.tar.gz">Download freebsd-zfs.tar.gz</a>
-                        <a href="/artifacts/freebsd-zfs.tar.gz.sigstore.json" aria-label="Build attestation for freebsd-zfs.tar.gz">Build attestation</a>
+                        <a class="button" href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz">Download freebsd-zfs.tar.gz</a>
+                        <a href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz.sigstore.json" aria-label="Build attestation for freebsd-zfs.tar.gz">Build attestation</a>
                     </div>
                     <div class="hash" hidden>
                         <span class="label">SHA-256</span>
@@ -43,8 +43,8 @@
                     <p>Compressed RAW disk image with a UFS root filesystem.</p>
                     <p class="meta" hidden></p>
                     <div class="actions">
-                        <a class="button" href="/artifacts/freebsd-ufs.tar.gz">Download freebsd-ufs.tar.gz</a>
-                        <a href="/artifacts/freebsd-ufs.tar.gz.sigstore.json" aria-label="Build attestation for freebsd-ufs.tar.gz">Build attestation</a>
+                        <a class="button" href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz">Download freebsd-ufs.tar.gz</a>
+                        <a href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz.sigstore.json" aria-label="Build attestation for freebsd-ufs.tar.gz">Build attestation</a>
                     </div>
                     <div class="hash" hidden>
                         <span class="label">SHA-256</span>
@@ -55,11 +55,11 @@
             </section>
             <section aria-labelledby="verify-title">
                 <h2 id="verify-title">Verify a download</h2>
-                <p>Compare the checksum, then check the build attestation. This site is served over HTTP, so a checksum fetched from it only detects a damaged download. The attestation is signed and can be verified independently.</p>
-                <p>Files: <a href="/artifacts/SHA256SUMS">SHA256SUMS</a>, <a href="/artifacts/freebsd-zfs.tar.gz.sigstore.json">ZFS attestation bundle</a>, <a href="/artifacts/freebsd-ufs.tar.gz.sigstore.json">UFS attestation bundle</a>.</p>
+                <p>Compare the checksum, then check the build attestation. The downloads and the files below come over HTTPS, but this page and the checksum shown on each card are served over HTTP, so a hostile network can alter them. The signed attestation can be verified independently.</p>
+                <p>Files: <a href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/SHA256SUMS">SHA256SUMS</a>, <a href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-zfs.tar.gz.sigstore.json">ZFS attestation bundle</a>, <a href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/freebsd-ufs.tar.gz.sigstore.json">UFS attestation bundle</a>.</p>
                 <details>
                     <summary>Verify the checksum</summary>
-                    <p>Put <a href="/artifacts/SHA256SUMS">SHA256SUMS</a> in the same directory as the images and run this on Linux:</p>
+                    <p>Put <a href="https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/SHA256SUMS">SHA256SUMS</a> in the same directory as the images and run this on Linux:</p>
                     <div class="snippet">
                         <pre tabindex="0"><code>sha256sum -c --ignore-missing SHA256SUMS</code></pre>
                         <button type="button" class="copy" hidden>Copy</button>
