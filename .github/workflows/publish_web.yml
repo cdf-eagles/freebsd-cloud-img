@@ -40,5 +40,5 @@ jobs:
                   AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
                   AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
               run: |
-                  aws s3 sync ./web/html "s3://${AWS_BUCKET}/" --no-progress
-                  aws s3 sync ./web/css "s3://${AWS_BUCKET}/css/" --no-progress
+                  aws s3 sync ./web/html "s3://${AWS_BUCKET}/" --no-progress --cache-control no-cache
+                  aws s3 sync ./web/css "s3://${AWS_BUCKET}/css/" --no-progress --cache-control no-cache
