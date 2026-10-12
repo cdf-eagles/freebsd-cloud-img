@@ -3,8 +3,7 @@ name: Publish Web Artifacts
 
 # yamllint disable rule:truthy
 on:
-    pull_request:
-        types: [closed]
+    push:
         branches: ["main"]
         paths:
             - 'web/**'
@@ -21,9 +20,11 @@ concurrency:
 jobs:
     publish_web:
         name: Publish Web Artifacts
-        if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        permissions:
+            contents: read
+            id-token: write
 
         steps:
             - name: Checkout code
@@ -32,12 +33,17 @@ jobs:
               with:
                   persist-credentials: false
 
+            - name: Configure AWS credentials
+              uses: aws-actions/configure-aws-credentials@e1253824e5c10ff9df46874f81ed3ec929e19cfd  # v6.3.0
+              id: aws_credentials
+              with:
+                  role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+                  aws-region: ${{ secrets.AWS_REGION }}
+                  mask-aws-account-id: true
+
             - name: Upload to AWS S3
               id: upload_web
               env:
-                  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-                  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-                  AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
                   AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
               run: |
                   aws s3 sync ./web/html "s3://${AWS_BUCKET}/" --no-progress --cache-control no-cache

@@ -1,5 +1,8 @@
 # Changelog
 
+- 2026-10-12
+  - The image and web publish jobs assume an IAM role through GitHub OpenID Connect (OIDC) instead of using the static `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` of an IAM user. The role trusts only the `main` branch, and the new `AWS_ROLE_ARN` secret names it.
+  - `publish_web.yml` runs on a push to `main` that changes `web/` instead of on a merged pull request, because a pull request event cannot assume the `main`-only role. A manual run from another branch no longer publishes.
 - 2026-10-03
   - The web page and the README link the images, `SHA256SUMS` and the attestation bundles through the bucket's HTTPS endpoint, `https://freebsd-images.s3.us-east-1.amazonaws.com/artifacts/`, instead of the HTTP website endpoint; it serves the same objects with the same size, ETag and content type. The page still reads the size, date and checksum over HTTP from its own origin because the bucket sends no CORS headers, and its note under Verify says the page and the checksum on each card are served over HTTP.
   - The download page is valid HTML5 with one card per image: a download button, the build attestation link, the size and publish date read from the bucket, and the SHA-256 with a copy button, which falls back to `execCommand` because the site is plain HTTP. A Verify section shows the `sha256sum -c` and `gh attestation verify --signer-workflow` commands, and the page gains a favicon, `theme-color` and Open Graph metadata and an unofficial, no-warranty and trademark footer. The size, date, checksum and copy buttons need JavaScript and stay hidden without it.
