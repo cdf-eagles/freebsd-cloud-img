@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-10-20
+  - `.github/actionlint.yaml` declares the `ubuntu-26.04` runner label. `actionlint` v1.7.12, the latest release, predates the Ubuntu 26.04 image and rejected the label with "label is unknown" in the Check YAML workflow and the pre-commit hook, which blocked any workflow that tests or pins that image. The entry is a workaround; remove it once a release includes the label.
 - 2026-10-12
   - The image and web publish jobs assume an IAM role through GitHub OpenID Connect (OIDC) instead of using the static `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` of an IAM user. The role trusts only the `main` branch, and the new `AWS_ROLE_ARN` secret names it.
   - `publish_web.yml` runs on a push to `main` that changes `web/` instead of on a merged pull request, because a pull request event cannot assume the `main`-only role. A manual run from another branch no longer publishes.
