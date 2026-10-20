@@ -1,0 +1,16 @@
+name: item254-probe
+on:
+    push:
+        branches: [item254-ubuntu26-probe]
+permissions: {}
+jobs:
+    probe:
+        runs-on: ubuntu-26.04
+        timeout-minutes: 5
+        steps:
+            - run: |
+                  cat /etc/os-release | head -3
+                  aws --version
+                  sha256sum --version | head -1
+                  echo test > probe.txt
+                  sha256sum -- probe.txt
