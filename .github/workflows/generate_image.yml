@@ -28,7 +28,7 @@ concurrency:
 jobs:
     build_image:
         name: Build ${{ matrix.fs }} image
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         timeout-minutes: 30
         strategy:
             matrix:
@@ -89,7 +89,7 @@ jobs:
         name: Publish images to AWS S3
         needs: build_image
         if: github.event_name != 'pull_request'
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-24.04
         timeout-minutes: 15
         permissions:
             contents: read

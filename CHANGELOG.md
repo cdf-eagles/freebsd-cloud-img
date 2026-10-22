@@ -1,5 +1,12 @@
 # Changelog
 
+- 2026-10-22
+  - A single `CI` (continuous integration) workflow runs on every pull request to `main`, every push to `main`, every Monday and on demand, with no path filter. It replaces the Check YAML and Run Shellcheck workflows, which ran only when a `.yml`, `.yaml` or `.sh` file changed, so a pull request touching anything else merged with no check run.
+  - The `CI` job is meant to be a required status check. The branch ruleset required no check before, and the image build cannot be required because it runs only for `scripts/build.sh`.
+  - `CI` scans the full history with gitleaks 8.21.2, verified against its checksum, on a clone it asserts is not shallow. Before, no secret scan ran in CI.
+  - `CI` runs every pre-commit hook once: the whitespace and YAML hooks, `detect-private-key`, ripsecrets and actionlint. Before, these ran only on a contributor's machine. It also runs yamllint with `--strict`, shellcheck, `scripts/check_cloudify.sh` and the schema checks for the workflows and `dependabot.yml`.
+  - shellcheck, yamllint, pre-commit and check-jsonschema are pinned in `ci/requirements.txt` instead of floating with the actions that bundled them, and Dependabot checks that file weekly. The runner is `ubuntu-24.04` in every workflow instead of `ubuntu-latest`.
+  - Every check step runs even when an earlier one fails, so one run reports all findings, and shellcheck must be on the path before actionlint runs, because actionlint skips `run:` blocks silently without it.
 - 2026-10-20
   - `.github/actionlint.yaml` declares the `ubuntu-26.04` runner label. `actionlint` v1.7.12, the latest release, predates the Ubuntu 26.04 image and rejected the label with "label is unknown" in the Check YAML workflow and the pre-commit hook, which blocked any workflow that tests or pins that image. The entry is a workaround; remove it once a release includes the label.
 - 2026-10-12
