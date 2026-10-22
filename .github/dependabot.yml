@@ -14,3 +14,16 @@ updates:
           github-actions:
               patterns:
                   - '*'
+    - package-ecosystem: pip
+      directory: /ci
+      schedule:
+          interval: weekly
+      cooldown:
+          default-days: 7
+      commit-message:
+          prefix: ci
+          include: scope
+      groups:
+          python-tools:
+              patterns:
+                  - '*'
