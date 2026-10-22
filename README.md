@@ -50,3 +50,4 @@ The publish jobs hold no static AWS keys. Each one requests a GitHub OpenID Conn
 Repository Actions secrets: `AWS_ROLE_ARN` (`arn:aws:iam::<account id>:role/<role name>`), `AWS_REGION` and `AWS_BUCKET`.
 
 The role needs `s3:PutObject` and `s3:AbortMultipartUpload` on `arn:aws:s3:::<bucket>/*` and `s3:ListBucket` on `arn:aws:s3:::<bucket>`, granted by its own IAM policy; the bucket policy only allows public `s3:GetObject`.
+x 
