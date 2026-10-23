@@ -55,9 +55,9 @@ jobs:
                   tar -xzf "${RUNNER_TEMP}/${tarball}" -C "${RUNNER_TEMP}" gitleaks
                   "${RUNNER_TEMP}/gitleaks" version
 
-            - name: Scan the full history with gitleaks
+            - name: Run gitleaks over the history of the checked-out commit
               id: gitleaks
-              run: '"${RUNNER_TEMP}/gitleaks" git --no-banner --redact --verbose .'
+              run: '"${RUNNER_TEMP}/gitleaks" git --no-banner --redact --verbose --log-opts="HEAD" .'
 
             - name: Install the Python tools
               id: install_python_tools
@@ -89,23 +89,23 @@ jobs:
                   yamllint --version
                   yamllint --strict .
 
-            - name: Workflow and Dependabot schemas
-              id: schemas
-              if: ${{ !cancelled() }}
-              run: |
-                  set -euo pipefail
-                  check-jsonschema --version
-                  check-jsonschema --builtin-schema vendor.github-workflows .github/workflows/*.yml
-                  check-jsonschema --builtin-schema vendor.dependabot .github/dependabot.yml
-
-            # actionlint skips run: blocks silently when shellcheck is missing.
+            # shellcheck runs above and yamllint covers check-yaml; actionlint
+            # skips run: blocks silently when shellcheck is missing.
             - name: pre-commit hooks
               id: pre_commit
               if: ${{ !cancelled() }}
               env:
-                  SKIP: shellcheck
+                  SKIP: shellcheck,check-yaml
               run: |
                   set -euo pipefail
                   command -v shellcheck
                   pre-commit --version
                   pre-commit run --all-files --show-diff-on-failure
+
+    tool-drift:
+        name: Tool drift
+        if: github.event_name == 'schedule'
+        permissions:
+            contents: read
+            issues: write
+        uses: cdf-eagles/.github/.github/workflows/tool-drift.yaml@4f61e172889ba89b4b32a8ebdc798d432c507ba7  # v1.0.0

@@ -27,3 +27,16 @@ updates:
           python-tools:
               patterns:
                   - '*'
+    - package-ecosystem: pre-commit
+      directory: /
+      schedule:
+          interval: weekly
+      cooldown:
+          default-days: 7
+      commit-message:
+          prefix: ci
+          include: scope
+      groups:
+          pre-commit-hooks:
+              patterns:
+                  - '*'

@@ -1,5 +1,10 @@
 # Changelog
 
+- 2026-10-23
+  - `CI` takes each tool version from one place Dependabot updates: yamllint, pre-commit and shellcheck-py in `ci/requirements.txt`, and actionlint and the workflow and Dependabot schema checks (`check-jsonschema`) as hooks in `.pre-commit-config.yaml`. The separate schema step is gone because the pre-commit hooks run those checks, and `check-yaml` is skipped there because yamllint covers it. Only gitleaks stays pinned, with its checksum, in the workflow.
+  - The gitleaks step scans the history of the checked-out commit (`--log-opts="HEAD"`), so on a pull request it covers `main` plus the pull request. Before, it scanned every ref the clone fetched.
+  - A pre-push hook runs gitleaks over the commits being pushed. Run `pre-commit install` once per clone to install it; it needs `gitleaks` on the path.
+  - The weekly `CI` run calls the shared **Tool drift** workflow, which opens an issue when gitleaks falls behind its latest release. Dependabot also checks the `pre-commit` hook revisions weekly, in one grouped `ci:` pull request.
 - 2026-10-22
   - A single `CI` (continuous integration) workflow runs on every pull request to `main`, every push to `main`, every Monday and on demand, with no path filter. It replaces the Check YAML and Run Shellcheck workflows, which ran only when a `.yml`, `.yaml` or `.sh` file changed, so a pull request touching anything else merged with no check run.
   - The `CI` job is meant to be a required status check. The branch ruleset required no check before, and the image build cannot be required because it runs only for `scripts/build.sh`.

@@ -42,6 +42,14 @@ Verify a download with `sha256sum -c --ignore-missing SHA256SUMS` (GNU coreutils
 
 Each image has a GitHub build provenance attestation, published next to it as `<image>.sigstore.json`. Verify a download with the GitHub CLI and the bundle, so `gh` does not have to fetch the attestation from GitHub: `gh attestation verify freebsd-zfs.tar.gz --bundle freebsd-zfs.tar.gz.sigstore.json --repo cdf-eagles/freebsd-cloud-img`. Without `--bundle`, `gh` looks the attestation up in GitHub by the digest of the file. Add `--signer-workflow cdf-eagles/freebsd-cloud-img/.github/workflows/generate_image.yml` to require that this workflow built it.
 
+# Continuous integration
+`.github/workflows/ci.yml` runs on every pull request and push to `main`, weekly, and on demand. It scans the history of the checked-out commit with gitleaks (from a checksum-verified release, on a complete clone), then runs shellcheck, `scripts/check_cloudify.sh`, yamllint, and the pre-commit hooks, which include the workflow and Dependabot schemas, actionlint, ripsecrets, and `detect-private-key` (each tool runs once).
+
+Every action is pinned to a commit, and every tool CI installs to an exact version. The runner image is pinned to Ubuntu 24.04, whose own packages are not. Tool versions live where Dependabot updates them weekly: the Python tools in `ci/requirements.txt`, and actionlint and the schema checks in `.pre-commit-config.yaml`. gitleaks is pinned with its checksum in the workflow, and the weekly run's **Tool drift** job opens an issue when it falls behind its latest release.
+
+# Development
+Gates before committing: `shellcheck scripts/*.sh`, `sh scripts/check_cloudify.sh`, `yamllint --strict .`, and `pre-commit run --all-files`. Run `pre-commit install` once per clone: it also installs a push hook that runs gitleaks over the commits being pushed, which needs `gitleaks` on the path.
+
 # Publishing
 A pull request that changes `scripts/build.sh` or `.github/workflows/generate_image.yml` builds both images without publishing them. A push to `main` that changes `scripts/build.sh`, the monthly schedule and a manual run build and publish the images, their attestation bundles and `SHA256SUMS` to the `artifacts/` prefix of the bucket, after attesting the images (the publish job alone has `id-token: write` and `attestations: write`). `publish_web.yml` publishes `web/` to the bucket root on a push to `main` that changes it, which includes a merged pull request, and on a manual run.
 
