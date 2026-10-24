@@ -1,5 +1,7 @@
 # Changelog
 
+- 2026-10-24
+  - The continuous integration (CI) secret scan downloads gitleaks 8.30.1, up from 8.21.2, verified by its checksum, and the download accepts only HTTPS with Transport Layer Security (TLS) 1.2 or later (`curl --proto "=https" --tlsv1.2`), so a redirect cannot drop it to plain HTTP. Found internally from backlog item 381.
 - 2026-10-23
   - `CI` takes each tool version from one place Dependabot updates: yamllint, pre-commit and shellcheck-py in `ci/requirements.txt`, and actionlint and the workflow and Dependabot schema checks (`check-jsonschema`) as hooks in `.pre-commit-config.yaml`. The separate schema step is gone because the pre-commit hooks run those checks, and `check-yaml` is skipped there because yamllint covers it. Only gitleaks stays pinned, with its checksum, in the workflow.
   - The gitleaks step scans the history of the checked-out commit (`--log-opts="HEAD"`), so on a pull request it covers `main` plus the pull request. Before, it scanned every ref the clone fetched.
