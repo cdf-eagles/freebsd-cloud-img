@@ -292,10 +292,19 @@ echo ">>>> Create pkg FreeBSD.conf"
 mkdir -p "\${ETCDIR}"/pkg/repos || echo "Unable to create \${ETCDIR}/pkg/repos"
 ls -ld "\${ETCDIR}"/pkg/repos
 
-cat <<EOF_PKGREPOCONF >"\${ETCDIR}"/pkg/repos/FreeBSD.conf
-FreeBSD: {
-  mirror_type: "none",
-  url: "http://pkg.FreeBSD.org/\${ABI}/latest",
+# FreeBSD 15 names its ports repository FreeBSD-ports: a stanza named FreeBSD
+# would add a second repository rather than override it.
+cat <<'EOF_PKGREPOCONF' >"\${ETCDIR}"/pkg/repos/FreeBSD.conf
+FreeBSD-ports: {
+  url: "pkg+https://pkg.FreeBSD.org/\${ABI}/latest",
+  mirror_type: "SRV",
+  signature_type: "FINGERPRINTS",
+  fingerprints: "/usr/share/keys/pkg",
+  enabled: yes
+}
+
+FreeBSD-ports-kmods: {
+  enabled: no
 }
 EOF_PKGREPOCONF
 ls -l "\${ETCDIR}"/pkg/repos/FreeBSD.conf
@@ -307,6 +316,14 @@ echo "****"
 # bootstrap pkg and install cloud-init and dependencies
 echo ">>>> Bootstraping pkg"
 pkg bootstrap -f -y
+echo ">>>> Checking that pkg uses only signed HTTPS repositories"
+pkg -vv >/dev/null || { echo "ERROR: pkg -vv failed"; exit 1; }
+if pkg -vv | grep -Eiq 'signature_type[[:space:]]*:[[:space:]]*"NONE"|url[[:space:]]*:[[:space:]]*"http://'; then
+    echo "ERROR: pkg resolves to an unsigned or plain HTTP repository"
+    pkg -vv
+    exit 1
+fi
+pkg -vv | grep -Eiq 'signature_type[[:space:]]*:[[:space:]]*"FINGERPRINTS"' || { echo "ERROR: no repository with fingerprint signatures is enabled"; pkg -vv; exit 1; }
 echo ">>>> Updating pkg repository"
 pkg update
 echo ">>>> Installing packages, including cloud-init"
