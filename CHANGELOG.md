@@ -1,5 +1,10 @@
 # Changelog
 
+- 2026-11-07
+  - The image build installs its packages from the signed `FreeBSD-ports` repository over `pkg+https` on the `latest` branch; before, it wrote a stanza named `FreeBSD`, which FreeBSD 15 no longer uses for its ports repository, so the build added a second repository over plain HTTP with no signature check. Found internally from backlog item 108.
+  - The kernel modules repository is disabled during the build, which installs no kernel modules.
+  - The build stops if `pkg -vv` lists an unsigned or plain HTTP repository, or no repository with fingerprint signatures.
+  - Images published since 2026-09-28 never carried that repository, because the build removes its pkg configuration from the image.
 - 2026-10-24
   - The continuous integration (CI) secret scan downloads gitleaks 8.30.1, up from 8.21.2, verified by its checksum, and the download accepts only HTTPS with Transport Layer Security (TLS) 1.2 or later (`curl --proto "=https" --tlsv1.2`), so a redirect cannot drop it to plain HTTP. Found internally from backlog item 381.
 - 2026-10-23
