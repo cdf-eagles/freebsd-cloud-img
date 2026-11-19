@@ -45,7 +45,9 @@ Each image has a GitHub build provenance attestation, published next to it as `<
 # Continuous integration
 `.github/workflows/ci.yml` runs on every pull request and push to `main`, weekly, and on demand. It scans the history of the checked-out commit with gitleaks (from a checksum-verified release, on a complete clone), then runs shellcheck, `scripts/check_cloudify.sh`, yamllint, and the pre-commit hooks, which include the workflow and Dependabot schemas, actionlint, ripsecrets, and `detect-private-key` (each tool runs once).
 
-Every action is pinned to a commit, and every tool CI installs to an exact version. The runner image is pinned to Ubuntu 24.04, whose own packages are not. Tool versions live where Dependabot updates them weekly: the Python tools in `ci/requirements.txt`, and actionlint and the schema checks in `.pre-commit-config.yaml`. gitleaks is pinned with its checksum in the workflow, and the weekly run's **Tool drift** job opens an issue when it falls behind its latest release.
+Every action is pinned to a commit, and every tool CI installs to an exact version. The runner image is pinned to Ubuntu 24.04, whose own packages are not. Tool versions live where Dependabot updates them weekly: the Python tools in `ci/requirements.txt`, and actionlint and the schema checks in `.pre-commit-config.yaml`. gitleaks and the Snyk CLI are pinned with their checksums in the workflow, and the weekly run's **Tool drift** job opens an issue when either falls behind its latest release.
+
+The `Snyk` job tests the Python tools pinned in `ci/requirements.txt` and fails on any high or critical dependency issue, a scan error, or a missing `SNYK_TOKEN` secret. The secret is set both as an Actions secret and as a Dependabot secret, because Dependabot's pull requests cannot read Actions secrets.
 
 # Development
 Gates before committing: `shellcheck scripts/*.sh`, `sh scripts/check_cloudify.sh`, `yamllint --strict .`, and `pre-commit run --all-files`. Run `pre-commit install` once per clone: it also installs a push hook that runs gitleaks over the commits being pushed, which needs `gitleaks` on the path.
