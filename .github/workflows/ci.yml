@@ -22,6 +22,8 @@ concurrency:
 env:
     GITLEAKS_VERSION: 8.30.1
     GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    SNYK_VERSION: 1.1308.4
+    SNYK_SHA256: 979172ee128903f50e43fff221f22a0689579f22c086dabaa0d1a5416485b9ba
 
 jobs:
     ci:
@@ -102,10 +104,54 @@ jobs:
                   pre-commit --version
                   pre-commit run --all-files --show-diff-on-failure
 
+    snyk:
+        name: Snyk
+        runs-on: ubuntu-24.04
+        timeout-minutes: 15
+
+        steps:
+            - name: Check out code
+              uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+              with:
+                  persist-credentials: false
+
+            # The Snyk CLI reads the dependency tree from the installed packages.
+            - name: Install the Python tools
+              run: |
+                  set -euo pipefail
+                  python3 -m venv "${RUNNER_TEMP}/venv"
+                  "${RUNNER_TEMP}/venv/bin/pip" install --quiet --require-virtualenv -r ci/requirements.txt
+
+            - name: Install the Snyk CLI
+              run: |
+                  set -euo pipefail
+                  curl --proto "=https" --tlsv1.2 -sSfL -o "${RUNNER_TEMP}/snyk" \
+                      "https://github.com/snyk/cli/releases/download/v${SNYK_VERSION}/snyk-linux"
+                  echo "${SNYK_SHA256}  ${RUNNER_TEMP}/snyk" | sha256sum -c -
+                  chmod 755 "${RUNNER_TEMP}/snyk"
+                  "${RUNNER_TEMP}/snyk" --version
+
+            # Fails on any high or critical issue in the CI tool pins, on a scan
+            # error, and when ci/requirements.txt is missing, so the required
+            # check fails closed. Dependabot pull requests read SNYK_TOKEN from
+            # the Dependabot secrets.
+            - name: Fail on high or critical dependency issues
+              env:
+                  SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+                  SNYK_DISABLE_ANALYTICS: 1
+              run: |
+                  set -euo pipefail
+                  if [ -z "${SNYK_TOKEN}" ]; then
+                      echo "::error::SNYK_TOKEN is not set for this run"
+                      exit 1
+                  fi
+                  "${RUNNER_TEMP}/snyk" test --file=ci/requirements.txt --package-manager=pip \
+                      --command="${RUNNER_TEMP}/venv/bin/python" --severity-threshold=high
+
     tool-drift:
         name: Tool drift
         if: github.event_name == 'schedule'
         permissions:
             contents: read
             issues: write
-        uses: cdf-eagles/.github/.github/workflows/tool-drift.yaml@4f61e172889ba89b4b32a8ebdc798d432c507ba7  # v1.0.0
+        uses: cdf-eagles/.github/.github/workflows/tool-drift.yaml@a3ceea039aa09885488009ee39ac07d9e7cfdefe  # v1.1.1

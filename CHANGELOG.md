@@ -1,5 +1,8 @@
 # Changelog
 
+- 2026-11-18
+  - A Snyk job in continuous integration (CI) tests the Python tools pinned in `ci/requirements.txt`, which Snyk's repository import skips, and fails on any high or critical issue, a scan error, or a missing `SNYK_TOKEN` secret. The Snyk CLI 1.1308.4 is downloaded from its GitHub release and verified by its checksum; found internally from backlog item 572.
+  - The weekly Tool drift job calls the Tool drift workflow v1.1.1, which also checks the `SNYK_VERSION` pin against the latest Snyk CLI release.
 - 2026-11-07
   - The image build installs its packages from the signed `FreeBSD-ports` repository over `pkg+https` on the `latest` branch; before, it wrote a stanza named `FreeBSD`, which FreeBSD 15 no longer uses for its ports repository, so the build added a second repository over plain HTTP with no signature check. Found internally from backlog item 108.
   - The kernel modules repository is disabled during the build, which installs no kernel modules.
