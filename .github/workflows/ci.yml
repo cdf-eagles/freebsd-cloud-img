@@ -52,7 +52,9 @@ jobs:
               run: |
                   set -euo pipefail
                   tarball="gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
-                  curl --proto "=https" --tlsv1.2 -sSfL -o "${RUNNER_TEMP}/${tarball}" \
+                  curl --proto "=https" --tlsv1.2 -sSfL \
+                      --retry 8 --retry-delay 30 --retry-max-time 300 --retry-all-errors \
+                      -o "${RUNNER_TEMP}/${tarball}" \
                       "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/${tarball}"
                   echo "${GITLEAKS_SHA256}  ${RUNNER_TEMP}/${tarball}" | sha256sum -c -
                   tar -xzf "${RUNNER_TEMP}/${tarball}" -C "${RUNNER_TEMP}" gitleaks
@@ -136,7 +138,9 @@ jobs:
             - name: Install the Snyk CLI
               run: |
                   set -euo pipefail
-                  curl --proto "=https" --tlsv1.2 -sSfL -o "${RUNNER_TEMP}/snyk" \
+                  curl --proto "=https" --tlsv1.2 -sSfL \
+                      --retry 8 --retry-delay 30 --retry-max-time 300 --retry-all-errors \
+                      -o "${RUNNER_TEMP}/snyk" \
                       "https://github.com/snyk/cli/releases/download/v${SNYK_VERSION}/snyk-linux"
                   echo "${SNYK_SHA256}  ${RUNNER_TEMP}/snyk" | sha256sum -c -
                   chmod 755 "${RUNNER_TEMP}/snyk"
