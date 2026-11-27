@@ -19,9 +19,20 @@ Usage: build.sh [-d] [-v] [-r <FreeBSD Release>] [-f <root fstype>]
   -h,    Display usage.
 ```
 
-A build stops with an explanatory error once the selected release has passed its end-of-life date (`freebsd-update` refuses to continue). Pick a [supported release](https://www.freebsd.org/security/#sup) and, for the monthly workflow, update the `RELEASE` default in `scripts/build.sh` and the `release` of the build VM in `.github/workflows/generate_image.yml`.
+A build stops with an explanatory error when [endoflife.date](https://endoflife.date/freebsd) reports that the selected release has passed its end-of-life date; if that lookup fails, the build prints a warning and continues. Pick a [supported release](https://www.freebsd.org/security/#sup) and, for the monthly workflow, update the `RELEASE` default in `scripts/build.sh` and the `release` of the build VM in `.github/workflows/generate_image.yml`.
 
-The release is downloaded over HTTPS from `download.freebsd.org` and each file is verified against the release `MANIFEST` before it is extracted. Archived releases are not served there and are not supported.
+The build must run on FreeBSD of the same major release as the image, because it copies the build host's `/usr/share/keys` into the image to verify the base system packages, as FreeBSD's packaged-base installer does.
+
+# What the image contains
+The image follows the defaults of FreeBSD's own VM images (`release/tools/vmimage.subr` and `release/tools/basic-cloudinit.conf` in the FreeBSD source tree) wherever this image does not need to differ:
+
+* The base system is installed from packages (packaged base) out of FreeBSD's signed `FreeBSD-base` repository for the release (`base_release_<minor>`), not from distribution sets: `FreeBSD-set-base`, `FreeBSD-set-kernels`, `FreeBSD-set-lib32`, `FreeBSD-set-tests`, their `-dbg` sets, and `pkg`. pkg checks each package against the repository's signature.
+* The base system is patched with pkg (`pkg upgrade -r FreeBSD-base`), not `freebsd-update`, which does not run on a packaged-base system. The image is built at the latest patch level the repository serves.
+* pkg uses FreeBSD's own repository configuration: `/etc/pkg/FreeBSD.conf` from the release (ports on the `quarterly` branch) plus `FreeBSD-base: { enabled: yes }` in `/usr/local/etc/pkg/repos/FreeBSD.conf`. The packages the build adds come from the same `quarterly` branch.
+* `firstboot-pkg-upgrade` installs the base system's security updates on the first boot (`firstboot_pkg_upgrade_repos="FreeBSD-base"`) and reboots when it installed any.
+* The disk is 5 GB, as FreeBSD's cloud-init image is; ZFS images grow to the disk they are given.
+
+Where it differs: it configures guests with cloud-init (`pyNNN-cloud-init`) instead of FreeBSD's `nuageinit`, adds `qemu-guest-agent`, sets a serial console, locks the root account, and enables its services in `/etc/rc.conf`. Site-specific choices, such as a smaller package set or another ports branch, belong in the configuration management that runs on the guest, not in the image.
 
 # Examples
 ## Build a regular 15.1-RELEASE image with a ZFS root
