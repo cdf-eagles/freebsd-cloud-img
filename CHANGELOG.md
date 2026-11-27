@@ -1,5 +1,14 @@
 # Changelog
 
+- 2026-11-26
+  - The image installs its base system from packages (packaged base) out of FreeBSD's signed `FreeBSD-base` repository for the release, as FreeBSD's own VM images do, instead of extracting `base.txz` and `kernel.txz` and patching them with `freebsd-update`. It carries the same base sets as FreeBSD's VM images (`FreeBSD-set-base`, `-kernels`, `-lib32`, `-tests`, their `-dbg` sets, and `pkg`) and is patched with `pkg upgrade -r FreeBSD-base`; `freebsd-update` does not run on it. Found internally from backlog item 660.
+  - The image keeps FreeBSD's own pkg configuration: the release's `/etc/pkg/FreeBSD.conf` (ports on `quarterly`) plus `FreeBSD-base: { enabled: yes }` in `/usr/local/etc/pkg/repos/FreeBSD.conf`, and no `/usr/local/etc/pkg.conf`. The packages the build adds (ca_root_nss, python3, qemu-guest-agent, cloud-init and firstboot-pkg-upgrade) come from `quarterly`, not `latest`.
+  - `firstboot-pkg-upgrade` installs base-system security updates at the first boot, as on FreeBSD's cloud-init image, and the image is marked for its first boot (`/firstboot`).
+  - The boot code and EFI loader come from the image's own `/boot`, so they match the installed base system, instead of from the build host.
+  - The disk is 5 GB, the size of FreeBSD's own cloud-init image, up from about 3.2 GiB, to hold the full base system with its debug and test sets.
+  - The build checks, before it closes the image, that pkg owns the base system, that the installed base sets are the expected ones, and that pkg resolves `FreeBSD-base` to the release's repository and `FreeBSD-ports` to `quarterly`.
+  - The end-of-life check reads the release's status from endoflife.date, since `freebsd-update`, whose warning the build read before, no longer runs; a failed lookup prints a warning. The release `MANIFEST` check is gone with the distribution sets.
+  - `scripts/build.sh` is version 2.0.0.
 - 2026-11-23
   - Continuous integration (CI) retries each pinned tool download (`--retry 8 --retry-delay 30 --retry-max-time 300 --retry-all-errors`) for up to about five minutes, so a passing error from GitHub's release download service, such as the 504 replies of 2026-11-08, no longer fails the job before its checks run; the SHA-256 check after each download is unchanged. Found internally from backlog item 516.
 - 2026-11-22
