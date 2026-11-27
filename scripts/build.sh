@@ -151,7 +151,13 @@ verify_image() {
         echo "ERROR: ${repo_conf} is not exactly 'FreeBSD-base: { enabled: yes }'" >&2
         return 1
     fi
-    [ ! -e "${vroot}/usr/local/etc/pkg.conf" ] || { echo "ERROR: the image has a /usr/local/etc/pkg.conf" >&2; return 1; }
+    # The pkg package creates /usr/local/etc/pkg.conf from pkg.conf.sample (@sample), as on FreeBSD's
+    # own images; the build must not have added to it (an ABI pin, for example).
+    pkg_conf="${vroot}/usr/local/etc/pkg.conf"
+    if [ -e "${pkg_conf}" ] && ! cmp -s "${pkg_conf}" "${pkg_conf}.sample"; then
+        echo "ERROR: ${pkg_conf} differs from pkg.conf.sample" >&2
+        return 1
+    fi
     pkg_vv=$(chroot "${vroot}" pkg -vv) || { echo "ERROR: pkg -vv failed in the image" >&2; return 1; }
     base_url=$(printf '%s\n' "${pkg_vv}" | repo_field FreeBSD-base url)
     base_enabled=$(printf '%s\n' "${pkg_vv}" | repo_field FreeBSD-base enabled)
